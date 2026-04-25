@@ -44,3 +44,6 @@
     ".next/dev/types/validator.ts"
   ]
 }
+// validator.ts exclude: Next 16 auto-generates that file with malformed
+// TS (missing `import type` keyword on line 17). Drop this exclude when
+// the upstream Next.js bug is fixed.

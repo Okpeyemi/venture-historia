@@ -26,4 +26,22 @@ describe("env loader", () => {
     expect(env.DATABASE_URL).toBe("postgres://u:p@localhost:5432/db");
     expect(env.AUTH_GOOGLE_ID).toBe("id");
   });
+
+  it("throws when AUTH_SECRET is shorter than 32 chars", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/db");
+    vi.stubEnv("AUTH_SECRET", "x".repeat(31));
+    vi.stubEnv("AUTH_GOOGLE_ID", "id");
+    vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    await expect(import("@/lib/env")).rejects.toThrow(/AUTH_SECRET/);
+  });
+
+  it("defaults NODE_ENV to production when unset (fail-safe)", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/db");
+    vi.stubEnv("AUTH_SECRET", "x".repeat(32));
+    vi.stubEnv("AUTH_GOOGLE_ID", "id");
+    vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("NODE_ENV", undefined as unknown as string);
+    const { env } = await import("@/lib/env");
+    expect(env.NODE_ENV).toBe("production");
+  });
 });
