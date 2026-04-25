@@ -224,6 +224,13 @@ git commit -m "feat(foundation): scaffold Next.js 15 + TypeScript + Tailwind"
 }
 ```
 
+> **Heads-up about Next 16's TS plugin**: the first time `next dev` runs
+> after Task 9, Next will rewrite `tsconfig.json` to (a) flip `jsx` from
+> `"preserve"` to `"react-jsx"`, (b) add `.next/dev/types/**/*.ts` to
+> `include`, and (c) reformat the JSON onto multiple lines. These edits
+> are required for Next 16's type-checker integration — accept them and
+> commit them as part of Task 9. All our strictness flags survive intact.
+
 - [ ] **Step 2: Verify TypeScript compiles**
 
 ```bash
@@ -801,15 +808,20 @@ export default function RootLayout({
 }
 ```
 
-- [ ] **Step 2: Verify `app/globals.css` has Tailwind directives**
+- [ ] **Step 2: Replace `app/globals.css` with just the Tailwind import**
 
-Make sure it contains (the scaffold should have generated this):
+The scaffold ships extra `:root` CSS variables, an `@theme inline` block, a
+`@media (prefers-color-scheme: dark)` switcher, and a `body` selector that
+sets background/color/font. These conflict with the layout's hard-coded
+dark theme (`bg-neutral-950`) — the unlayered `body` selector outranks
+Tailwind utilities in v4. Replace the entire file with:
 
 ```css
 @import "tailwindcss";
 ```
 
-If not, replace its contents with that line.
+That's the only line we want for now. Custom CSS variables will be
+introduced as the design system grows in later plans.
 
 - [ ] **Step 3: Replace `app/page.tsx` with a landing page**
 
