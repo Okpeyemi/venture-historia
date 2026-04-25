@@ -4,10 +4,10 @@
 
 **Goal:** Stand up the Next.js 15 foundation for Venture Historia: a deployable web app where a user can sign in via Google, land on a protected (placeholder) dashboard, and sign out, with PostgreSQL persistence and an automated end-to-end smoke test.
 
-**Architecture:** Next.js 15 App Router monolith. Drizzle ORM against PostgreSQL (run locally via docker-compose, deployed against managed Postgres). Auth.js v5 (NextAuth) with Drizzle adapter for sessions, Google OAuth as the only provider in this plan (email magic link deferred). Vitest for unit tests, Playwright for E2E. No game logic in this plan — only the shell other plans will plug into.
+**Architecture:** Next.js 16 (or latest stable) App Router monolith. Drizzle ORM against PostgreSQL (run locally via docker-compose, deployed against managed Postgres). Auth.js v5 (NextAuth) with Drizzle adapter for sessions, Google OAuth as the only provider in this plan (email magic link deferred). Vitest for unit tests, Playwright for E2E. No game logic in this plan — only the shell other plans will plug into.
 
 **Tech Stack:**
-- Next.js 15 (App Router) + React 19 + TypeScript 5
+- Next.js 16+ (App Router) + React 19 + TypeScript 5
 - Tailwind CSS 4
 - PostgreSQL 16 (docker-compose for dev)
 - Drizzle ORM + Drizzle Kit
@@ -224,6 +224,13 @@ git commit -m "feat(foundation): scaffold Next.js 15 + TypeScript + Tailwind"
 }
 ```
 
+> **Heads-up about Next 16's TS plugin**: the first time `next dev` runs
+> after Task 9, Next will rewrite `tsconfig.json` to (a) flip `jsx` from
+> `"preserve"` to `"react-jsx"`, (b) add `.next/dev/types/**/*.ts` to
+> `include`, and (c) reformat the JSON onto multiple lines. These edits
+> are required for Next 16's type-checker integration — accept them and
+> commit them as part of Task 9. All our strictness flags survive intact.
+
 - [ ] **Step 2: Verify TypeScript compiles**
 
 ```bash
@@ -331,7 +338,8 @@ services:
       POSTGRES_PASSWORD: venture_dev_password
       POSTGRES_DB: venture_historia
     ports:
-      - "5432:5432"
+      # Host port 5433 (not 5432) to avoid conflict with system Postgres
+      - "5433:5432"
     volumes:
       - venture_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -460,7 +468,7 @@ Expected: 2 tests pass.
 
 ```bash
 # PostgreSQL — points to docker-compose service in dev
-DATABASE_URL=postgres://venture:venture_dev_password@localhost:5432/venture_historia
+DATABASE_URL=postgres://venture:venture_dev_password@localhost:5433/venture_historia
 
 # NextAuth — generate with: openssl rand -base64 32
 AUTH_SECRET=
@@ -474,7 +482,7 @@ AUTH_GOOGLE_SECRET=
 - [ ] **Step 7: Create `.env.local` for local dev**
 
 ```bash
-DATABASE_URL=postgres://venture:venture_dev_password@localhost:5432/venture_historia
+DATABASE_URL=postgres://venture:venture_dev_password@localhost:5433/venture_historia
 AUTH_SECRET=$(openssl rand -base64 32)
 AUTH_GOOGLE_ID=placeholder_replace_me
 AUTH_GOOGLE_SECRET=placeholder_replace_me
@@ -577,7 +585,19 @@ import postgres from "postgres";
 import { env } from "@/lib/env";
 import * as schema from "./schema";
 
-const client = postgres(env.DATABASE_URL, { max: 1 });
+// Cache the postgres client across HMR reloads in dev so we don't leak
+// connections every time Next.js Turbopack re-evaluates this module.
+const globalForDb = globalThis as unknown as {
+  client?: ReturnType<typeof postgres>;
+};
+
+const client =
+  globalForDb.client ?? postgres(env.DATABASE_URL, { max: 10 });
+
+if (env.NODE_ENV !== "production") {
+  globalForDb.client = client;
+}
+
 export const db = drizzle(client, { schema });
 ```
 
@@ -656,6 +676,13 @@ npm install next-auth@beta @auth/drizzle-adapter
 
 (`next-auth@beta` is the v5 line. As of writing, it's pre-1.0 stable. If a stable v5 is published, use that instead.)
 
+After install, **pin the exact versions in `package.json`** (drop the carets) — beta versions can ship breaking changes between patches:
+
+```json
+"@auth/drizzle-adapter": "1.11.2",
+"next-auth": "5.0.0-beta.31",
+```
+
 - [ ] **Step 2: Create `lib/auth.ts`**
 
 ```ts
@@ -667,6 +694,9 @@ import { env } from "@/lib/env";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db),
+  // Database sessions (vs JWT) for server-side revocation, refresh-token
+  // pairing with the `account` table, and long-lived player accounts.
+  // Each auth() call is a DB roundtrip — acceptable for a turn-based game.
   session: { strategy: "database" },
   providers: [
     Google({
@@ -677,7 +707,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/signin",
   },
-  trustHost: true,
+  // trustHost is required in dev to compute callback URLs from request
+  // headers without an explicit AUTH_URL. In production AUTH_URL must be
+  // set explicitly to prevent host-header injection on the OAuth callback.
+  trustHost: env.NODE_ENV !== "production",
 });
 ```
 
@@ -775,15 +808,20 @@ export default function RootLayout({
 }
 ```
 
-- [ ] **Step 2: Verify `app/globals.css` has Tailwind directives**
+- [ ] **Step 2: Replace `app/globals.css` with just the Tailwind import**
 
-Make sure it contains (the scaffold should have generated this):
+The scaffold ships extra `:root` CSS variables, an `@theme inline` block, a
+`@media (prefers-color-scheme: dark)` switcher, and a `body` selector that
+sets background/color/font. These conflict with the layout's hard-coded
+dark theme (`bg-neutral-950`) — the unlayered `body` selector outranks
+Tailwind utilities in v4. Replace the entire file with:
 
 ```css
 @import "tailwindcss";
 ```
 
-If not, replace its contents with that line.
+That's the only line we want for now. Custom CSS variables will be
+introduced as the design system grows in later plans.
 
 - [ ] **Step 3: Replace `app/page.tsx` with a landing page**
 
