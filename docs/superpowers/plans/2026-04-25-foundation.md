@@ -4,10 +4,10 @@
 
 **Goal:** Stand up the Next.js 15 foundation for Venture Historia: a deployable web app where a user can sign in via Google, land on a protected (placeholder) dashboard, and sign out, with PostgreSQL persistence and an automated end-to-end smoke test.
 
-**Architecture:** Next.js 15 App Router monolith. Drizzle ORM against PostgreSQL (run locally via docker-compose, deployed against managed Postgres). Auth.js v5 (NextAuth) with Drizzle adapter for sessions, Google OAuth as the only provider in this plan (email magic link deferred). Vitest for unit tests, Playwright for E2E. No game logic in this plan — only the shell other plans will plug into.
+**Architecture:** Next.js 16 (or latest stable) App Router monolith. Drizzle ORM against PostgreSQL (run locally via docker-compose, deployed against managed Postgres). Auth.js v5 (NextAuth) with Drizzle adapter for sessions, Google OAuth as the only provider in this plan (email magic link deferred). Vitest for unit tests, Playwright for E2E. No game logic in this plan — only the shell other plans will plug into.
 
 **Tech Stack:**
-- Next.js 15 (App Router) + React 19 + TypeScript 5
+- Next.js 16+ (App Router) + React 19 + TypeScript 5
 - Tailwind CSS 4
 - PostgreSQL 16 (docker-compose for dev)
 - Drizzle ORM + Drizzle Kit

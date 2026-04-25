@@ -250,7 +250,7 @@ Le crédit est l'unité de pricing exposée au joueur. Le **coût en crédits pa
 
 ## 11. Stack technique
 
-- **Frontend + API routes** : Next.js 15 (App Router) + TypeScript + Tailwind CSS
+- **Frontend + API routes** : Next.js 16+ (App Router, latest stable) + TypeScript + Tailwind CSS
 - **Base de données** : PostgreSQL (avec Drizzle ou Prisma comme ORM)
 - **Cache** : Redis (Upstash en serverless ou self-hosted)
 - **IA** : Anthropic SDK direct (pas via OpenRouter au MVP — accès au prompt caching natif et latence réduite)
