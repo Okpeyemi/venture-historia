@@ -331,7 +331,8 @@ services:
       POSTGRES_PASSWORD: venture_dev_password
       POSTGRES_DB: venture_historia
     ports:
-      - "5432:5432"
+      # Host port 5433 (not 5432) to avoid conflict with system Postgres
+      - "5433:5432"
     volumes:
       - venture_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -460,7 +461,7 @@ Expected: 2 tests pass.
 
 ```bash
 # PostgreSQL — points to docker-compose service in dev
-DATABASE_URL=postgres://venture:venture_dev_password@localhost:5432/venture_historia
+DATABASE_URL=postgres://venture:venture_dev_password@localhost:5433/venture_historia
 
 # NextAuth — generate with: openssl rand -base64 32
 AUTH_SECRET=
@@ -474,7 +475,7 @@ AUTH_GOOGLE_SECRET=
 - [ ] **Step 7: Create `.env.local` for local dev**
 
 ```bash
-DATABASE_URL=postgres://venture:venture_dev_password@localhost:5432/venture_historia
+DATABASE_URL=postgres://venture:venture_dev_password@localhost:5433/venture_historia
 AUTH_SECRET=$(openssl rand -base64 32)
 AUTH_GOOGLE_ID=placeholder_replace_me
 AUTH_GOOGLE_SECRET=placeholder_replace_me
