@@ -1,14 +1,16 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { cache } from "react";
 import { db } from "@/lib/db/client";
 import { env } from "@/lib/env";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const nextAuth = NextAuth({
   adapter: DrizzleAdapter(db),
   // Database sessions (vs JWT) for server-side revocation, refresh-token
   // pairing with the `account` table, and long-lived player accounts.
-  // Each auth() call is a DB roundtrip — acceptable for a turn-based game.
+  // Each auth() call is a DB roundtrip — see the React.cache() wrapper
+  // below which dedupes calls within a single request render tree.
   session: { strategy: "database" },
   providers: [
     Google({
@@ -24,3 +26,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // set explicitly to prevent host-header injection on the OAuth callback.
   trustHost: env.NODE_ENV !== "production",
 });
+
+export const { handlers, signIn, signOut } = nextAuth;
+
+// Wrap auth() in React.cache so layout + page in the same render tree
+// share one session lookup instead of round-tripping the DB twice.
+export const auth = cache(nextAuth.auth);
