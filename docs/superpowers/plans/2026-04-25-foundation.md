@@ -669,6 +669,13 @@ npm install next-auth@beta @auth/drizzle-adapter
 
 (`next-auth@beta` is the v5 line. As of writing, it's pre-1.0 stable. If a stable v5 is published, use that instead.)
 
+After install, **pin the exact versions in `package.json`** (drop the carets) — beta versions can ship breaking changes between patches:
+
+```json
+"@auth/drizzle-adapter": "1.11.2",
+"next-auth": "5.0.0-beta.31",
+```
+
 - [ ] **Step 2: Create `lib/auth.ts`**
 
 ```ts
@@ -680,6 +687,9 @@ import { env } from "@/lib/env";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db),
+  // Database sessions (vs JWT) for server-side revocation, refresh-token
+  // pairing with the `account` table, and long-lived player accounts.
+  // Each auth() call is a DB roundtrip — acceptable for a turn-based game.
   session: { strategy: "database" },
   providers: [
     Google({
@@ -690,7 +700,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/signin",
   },
-  trustHost: true,
+  // trustHost is required in dev to compute callback URLs from request
+  // headers without an explicit AUTH_URL. In production AUTH_URL must be
+  // set explicitly to prevent host-header injection on the OAuth callback.
+  trustHost: env.NODE_ENV !== "production",
 });
 ```
 
