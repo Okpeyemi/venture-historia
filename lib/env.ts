@@ -20,12 +20,28 @@ const schema = z
       .default("false")
       .transform((v) => v === "true"),
   })
-  .refine((data) => !(data.AUTH_DEV_BYPASS && data.NODE_ENV === "production"), {
-    message:
-      "AUTH_DEV_BYPASS=true is forbidden when NODE_ENV=production. " +
-      "This flag exists only for local dev when real OAuth is unavailable.",
-    path: ["AUTH_DEV_BYPASS"],
-  });
+  .refine(
+    (data) => {
+      // Allow the bypass=true + NODE_ENV=production combo during a Next.js
+      // build (NEXT_PHASE === "phase-production-build"). next build sets
+      // NODE_ENV=production internally even for local builds; we don't
+      // want that to make a developer's `npm run build` fail just because
+      // their .env.local has AUTH_DEV_BYPASS=true for local testing.
+      // The runtime check still lives in lib/auth.ts (which only activates
+      // the bypass when env.NODE_ENV !== "production"), and `next start`
+      // will hit this refine with no NEXT_PHASE phase-production-build set
+      // — so a real production server can still never boot with the
+      // bypass active.
+      if (process.env.NEXT_PHASE === "phase-production-build") return true;
+      return !(data.AUTH_DEV_BYPASS && data.NODE_ENV === "production");
+    },
+    {
+      message:
+        "AUTH_DEV_BYPASS=true is forbidden when NODE_ENV=production. " +
+        "This flag exists only for local dev when real OAuth is unavailable.",
+      path: ["AUTH_DEV_BYPASS"],
+    },
+  );
 
 const parsed = schema.safeParse(process.env);
 

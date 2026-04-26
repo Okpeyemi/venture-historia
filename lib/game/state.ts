@@ -24,6 +24,7 @@ export function createInitialState(args: {
       marketConditions: "neutral",
       macroEventsActive: [],
       competitors: [],
+      firedMilestones: [],
     },
     playerState: {
       companyName: args.companyName,
@@ -36,6 +37,7 @@ export function createInitialState(args: {
         teamSize: args.startingTeamSize,
       }),
       founderBurnout: 20,
+      boardTension: 0,
       products: [],
       investors: [],
       boardSeatsTaken: 0,

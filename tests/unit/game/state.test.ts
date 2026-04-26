@@ -32,6 +32,8 @@ describe("createInitialState", () => {
     expect(state.history.trimestersPlayed).toBe(0);
     expect(state.worldState.competitors).toEqual([]);
     expect(state.worldState.macroEventsActive).toEqual([]);
+    expect(state.playerState.boardTension).toBe(0);
+    expect(state.worldState.firedMilestones).toEqual([]);
   });
 });
 

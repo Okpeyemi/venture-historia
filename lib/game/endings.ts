@@ -16,6 +16,20 @@ export function detectAutoEnding(state: GameState): Ending | null {
       summary: `${state.playerState.companyName} a épuisé sa trésorerie. Liquidation.`,
     };
   }
+  if (state.playerState.boardTension >= 100 && state.playerState.boardSeatsTaken >= 1) {
+    return {
+      kind: "ousting",
+      trimesterIndex: state.history.trimestersPlayed,
+      summary: `Le board a voté l'éviction du fondateur de ${state.playerState.companyName}.`,
+    };
+  }
+  if (state.worldState.macroEventsActive.includes("industry_collapse_triggered")) {
+    return {
+      kind: "industry_collapse",
+      trimesterIndex: state.history.trimestersPlayed,
+      summary: `L'industrie de ${state.scenario.sector} s'effondre. ${state.playerState.companyName} ne peut survivre.`,
+    };
+  }
   return null;
 }
 
