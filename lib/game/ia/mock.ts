@@ -54,20 +54,20 @@ export class MockGameMaster implements IGameMaster {
       if (d.action.kind === "product.launch") shipped = true;
     }
 
-    // Burnout deltas at close
-    let burnout = next.playerState.founderBurnout + BURNOUT_DELTAS.baseline;
-    if (firedSomeone) burnout += BURNOUT_DELTAS.firedSomeone;
-    if (raised) burnout += BURNOUT_DELTAS.successfulRaise;
-    if (shipped) burnout += BURNOUT_DELTAS.shippedProduct;
+    // Burnout delta at close: accumulate, then apply once with clamping.
+    let delta = BURNOUT_DELTAS.baseline;
+    if (firedSomeone) delta += BURNOUT_DELTAS.firedSomeone;
+    if (raised) delta += BURNOUT_DELTAS.successfulRaise;
+    if (shipped) delta += BURNOUT_DELTAS.shippedProduct;
     const runway = computeRunwayMonths({
       cash: next.playerState.cash,
       teamSize: next.playerState.teamSize,
     });
-    if (runway < 3) burnout += BURNOUT_DELTAS.runwayCritical;
+    if (runway < 3) delta += BURNOUT_DELTAS.runwayCritical;
 
     const newPlayerState = {
       ...next.playerState,
-      founderBurnout: applyBurnoutDelta(next.playerState.founderBurnout, burnout - next.playerState.founderBurnout),
+      founderBurnout: applyBurnoutDelta(next.playerState.founderBurnout, delta),
       runwayMonths: runway,
     };
 

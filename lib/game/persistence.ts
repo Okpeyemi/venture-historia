@@ -55,6 +55,20 @@ export async function saveTrimester(args: {
   event: TrimesterEvent | null;
   decisions: Decision[];
 }): Promise<void> {
+  // Refuse to write a new trimester if the game has already ended.
+  // Returns the rows the games update touched; if zero, the game was
+  // already ended (or doesn't exist) and the caller should treat the
+  // saveTrimester as a no-op race / stale request.
+  const updated = await db
+    .update(games)
+    .set({ currentTrimesterIndex: args.trimesterIndex, updatedAt: new Date() })
+    .where(and(eq(games.id, args.gameId), eq(games.status, "in_progress")))
+    .returning({ id: games.id });
+  if (updated.length === 0) {
+    throw new Error(
+      `saveTrimester: game ${args.gameId} is not in_progress (already ended or missing)`,
+    );
+  }
   await db.insert(trimesters).values({
     gameId: args.gameId,
     trimesterIndex: args.trimesterIndex,
@@ -64,19 +78,17 @@ export async function saveTrimester(args: {
     event: args.event,
     decisions: args.decisions,
   });
-  await db
-    .update(games)
-    .set({ currentTrimesterIndex: args.trimesterIndex, updatedAt: new Date() })
-    .where(eq(games.id, args.gameId));
 }
 
 export async function endGame(args: {
   gameId: string;
   ending: Ending;
-}): Promise<void> {
+}): Promise<boolean> {
   const successKinds: EndingKind[] = ["ipo", "acquisition", "lifestyle", "conglomerate"];
   const status = successKinds.includes(args.ending.kind) ? "ended_success" : "ended_fail";
-  await db
+  // Idempotency guard: only end games that are still in_progress. Returns
+  // true if this call ended the game, false if it was already ended.
+  const updated = await db
     .update(games)
     .set({
       status,
@@ -84,5 +96,7 @@ export async function endGame(args: {
       endingSummary: args.ending.summary,
       updatedAt: new Date(),
     })
-    .where(eq(games.id, args.gameId));
+    .where(and(eq(games.id, args.gameId), eq(games.status, "in_progress")))
+    .returning({ id: games.id });
+  return updated.length > 0;
 }
