@@ -8,6 +8,13 @@
       "when": 1777126111165,
       "tag": "0000_overjoyed_excalibur",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777210882545,
+      "tag": "0001_calm_princess_powerful",
+      "breakpoints": true
     }
   ]
 }
