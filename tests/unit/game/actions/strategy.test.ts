@@ -42,7 +42,7 @@ describe("processStrategy — strategy.partnership", () => {
     expect(next.history.activeConsequences[0]).toMatchObject({
       remainingQuarters: 4,
     });
-    expect(next.history.activeConsequences[0].description).toMatch(/BigCo.*10%/);
+    expect(next.history.activeConsequences[0]!.description).toMatch(/BigCo.*10%/);
   });
 });
 
