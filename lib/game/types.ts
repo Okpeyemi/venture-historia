@@ -25,6 +25,7 @@ export type WorldState = {
   marketConditions: string;
   macroEventsActive: string[];
   competitors: Competitor[];
+  firedMilestones: string[];
 };
 
 // ─── Player ──────────────────────────────────────────────────
@@ -54,6 +55,7 @@ export type PlayerState = {
   reputation: number;      // 0-100
   runwayMonths: number;    // computed at trimester close
   founderBurnout: number;  // 0-100 — 100 triggers fail ending
+  boardTension: number;
   products: Product[];
   investors: Investor[];
   boardSeatsTaken: number;
