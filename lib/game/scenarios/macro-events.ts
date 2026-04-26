@@ -14,16 +14,25 @@ export function evaluateMacroEvents(
   );
 }
 
+/**
+ * Apply structural effects of macro event firings: record the firing in
+ * `firedMilestones` (idempotency) and append any flags to
+ * `macroEventsActive`. Crucially, this does NOT append the human-facing
+ * narration to `history.narrativeSummary` — that text is surfaced once,
+ * by `ScriptedGameMaster.openTrimester`, into the trimester's
+ * `narrationOpening` row. Doing it again here would duplicate the text
+ * for any UI that renders both narrationOpening and narrativeSummary.
+ * Plan #4 may add a compact summary line if the IA needs the event in
+ * its context window.
+ */
 export function applyMacroEventEffects(
   state: GameState,
   firings: ScenarioMacroEvent[],
 ): GameState {
   let next = state;
   for (const event of firings) {
-    const prefix = next.history.narrativeSummary ? next.history.narrativeSummary + "\n" : "";
     next = {
       ...next,
-      history: { ...next.history, narrativeSummary: prefix + event.narration },
       worldState: {
         ...next.worldState,
         firedMilestones: [...next.worldState.firedMilestones, event.id],

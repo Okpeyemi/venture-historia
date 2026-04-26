@@ -1,16 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-// These E2E tests verify the *real* auth flow: sign-in CTA visible, sign-in
-// page exposes Google button, dashboard redirects unauthenticated users.
-// AUTH_DEV_BYPASS=true bypasses the entire flow — synthesizing a session,
-// auto-redirecting /signin to /dashboard, and making /dashboard reachable
-// without a cookie. Skip the gate tests when bypass is on; the bypass has
-// its own smoke test in the auth fix commit history.
+// AUTH_DEV_BYPASS=true short-circuits the real auth flow: synthesizes a
+// session, auto-redirects /signin to /dashboard, and makes /dashboard
+// reachable without a cookie. The two gate tests below assume the real
+// flow and would always fail under bypass — skip them. The landing page
+// test stays active because the public landing page is unchanged
+// regardless of bypass state.
 const bypassActive = process.env.AUTH_DEV_BYPASS === "true";
 
 test.describe("auth gates", () => {
-  test.skip(bypassActive, "AUTH_DEV_BYPASS=true short-circuits real auth — gate tests do not apply");
-
   test("landing page shows the sign-in CTA", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Venture Historia" })).toBeVisible();
@@ -18,11 +16,13 @@ test.describe("auth gates", () => {
   });
 
   test("sign-in page exposes the Google button", async ({ page }) => {
+    test.skip(bypassActive, "AUTH_DEV_BYPASS auto-redirects /signin to /dashboard");
     await page.goto("/signin");
     await expect(page.getByRole("button", { name: /Continuer avec Google/ })).toBeVisible();
   });
 
   test("dashboard redirects unauthenticated users to /signin", async ({ page }) => {
+    test.skip(bypassActive, "AUTH_DEV_BYPASS makes /dashboard reachable without a session");
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/signin$/);
   });

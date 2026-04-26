@@ -64,6 +64,17 @@ export const SF_2005_SAAS: ScenarioPreset = {
               "préparent une offre formelle pour le prochain trimestre.",
           },
         },
+        {
+          // After a big raise (>= $5M = Series A territory), board pressure
+          // mounts as investors weigh selling vs scaling. Pushes
+          // boardTension toward the ousting ending — currently the only
+          // path to that ending in SF 2005. Plan #4 will add more
+          // accelerators (missed milestones, founder/investor conflicts
+          // during NL-driven turns).
+          id: "bigcorp_post_raise_board_pressure",
+          trigger: { kind: "playerCashAtLeast", cash: 5_000_000 },
+          reaction: { kind: "boardTensionDelta", delta: 30 },
+        },
       ],
     },
     {

@@ -61,11 +61,15 @@ describe("evaluateMacroEvents", () => {
 });
 
 describe("applyMacroEventEffects", () => {
-  it("records the event id in firedMilestones and prepends narration", () => {
+  it("records the event id in firedMilestones (idempotency log) without duplicating narration", () => {
     const state = baseState();
     const next = applyMacroEventEffects(state, [events[0]!]);
     expect(next.worldState.firedMilestones).toContain("sox");
-    expect(next.history.narrativeSummary).toContain("SOX pressure");
+    // Narration is intentionally NOT appended to narrativeSummary —
+    // openTrimester surfaces it once via narrationOpening; appending here
+    // would double-render in any UI that shows both. Plan #4 may add a
+    // compact summary if the IA needs the event in its context window.
+    expect(next.history.narrativeSummary).toBe("");
   });
 
   it("add_macro_flag pushes the flag onto worldState.macroEventsActive", () => {
