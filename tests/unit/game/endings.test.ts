@@ -41,6 +41,45 @@ describe("detectAutoEnding", () => {
     };
     expect(detectAutoEnding(state)?.kind).toBe("burnout");
   });
+
+  it("detects ousting when boardTension >= 100 and at least one board seat is taken", () => {
+    const state = {
+      ...baseState(),
+      playerState: { ...baseState().playerState, boardTension: 100, boardSeatsTaken: 1 },
+    };
+    expect(detectAutoEnding(state)?.kind).toBe("ousting");
+  });
+
+  it("does NOT detect ousting when boardTension >= 100 but no board seat is taken", () => {
+    const state = {
+      ...baseState(),
+      playerState: { ...baseState().playerState, boardTension: 100, boardSeatsTaken: 0 },
+    };
+    expect(detectAutoEnding(state)).toBeNull();
+  });
+
+  it("detects industry_collapse when worldState.macroEventsActive includes 'industry_collapse_triggered'", () => {
+    const state = {
+      ...baseState(),
+      worldState: { ...baseState().worldState, macroEventsActive: ["industry_collapse_triggered"] },
+    };
+    expect(detectAutoEnding(state)?.kind).toBe("industry_collapse");
+  });
+
+  it("orders endings: burnout > bankruptcy > ousting > industry_collapse", () => {
+    const state = {
+      ...baseState(),
+      playerState: {
+        ...baseState().playerState,
+        founderBurnout: 100,
+        cash: 0,
+        boardTension: 100,
+        boardSeatsTaken: 1,
+      },
+      worldState: { ...baseState().worldState, macroEventsActive: ["industry_collapse_triggered"] },
+    };
+    expect(detectAutoEnding(state)?.kind).toBe("burnout");
+  });
 });
 
 describe("applyPlayerEnding", () => {
