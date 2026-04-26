@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/lib/auth";
+import { env } from "@/lib/env";
 import Link from "next/link";
 
 export default async function AppLayout({
@@ -14,6 +15,13 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen">
+      {env.AUTH_DEV_BYPASS && (
+        <div className="bg-amber-500 text-amber-950 px-6 py-2 text-center text-sm font-semibold">
+          ⚠️ AUTH_DEV_BYPASS actif — toutes les requêtes utilisent le user
+          fictif <code className="font-mono">{session.user.email}</code>. À
+          désactiver dès que la vraie auth fonctionne.
+        </div>
+      )}
       <header className="border-b border-neutral-800 px-6 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Link href="/dashboard" className="text-lg font-semibold">
