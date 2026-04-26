@@ -44,4 +44,38 @@ describe("env loader", () => {
     const { env } = await import("@/lib/env");
     expect(env.NODE_ENV).toBe("production");
   });
+
+  it("AUTH_DEV_BYPASS defaults to false when unset", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/db");
+    vi.stubEnv("AUTH_SECRET", "x".repeat(32));
+    vi.stubEnv("AUTH_GOOGLE_ID", "id");
+    vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("AUTH_DEV_BYPASS", undefined as unknown as string);
+    const { env } = await import("@/lib/env");
+    expect(env.AUTH_DEV_BYPASS).toBe(false);
+  });
+
+  it("AUTH_DEV_BYPASS=true is accepted in development", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/db");
+    vi.stubEnv("AUTH_SECRET", "x".repeat(32));
+    vi.stubEnv("AUTH_GOOGLE_ID", "id");
+    vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("AUTH_DEV_BYPASS", "true");
+    const { env } = await import("@/lib/env");
+    expect(env.AUTH_DEV_BYPASS).toBe(true);
+  });
+
+  it("AUTH_DEV_BYPASS=true is REFUSED at boot when NODE_ENV=production", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/db");
+    vi.stubEnv("AUTH_SECRET", "x".repeat(32));
+    vi.stubEnv("AUTH_GOOGLE_ID", "id");
+    vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("AUTH_DEV_BYPASS", "true");
+    await expect(import("@/lib/env")).rejects.toThrow(
+      /AUTH_DEV_BYPASS=true is forbidden when NODE_ENV=production/,
+    );
+  });
 });

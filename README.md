@@ -102,7 +102,29 @@ Workarounds, du moins intrusif au plus intrusif :
 
 3. **Modifier `/etc/gai.conf`** pour préférer IPv4 globalement (Linux, requiert sudo) — derniers recours.
 
+4. **Bypass auth en dev** (option de dernier recours, voir section dédiée ci-dessous).
+
 Une fois le réseau OK, tu dois voir : sign-in → choix Google → consent → retour sur `/dashboard` avec ton nom affiché, et une ligne dans la table `user` (vérif : `docker compose exec postgres psql -U venture -d venture_historia -c 'SELECT id, email, name FROM "user";'`).
+
+### Bypass d'authentification pour le dev (`AUTH_DEV_BYPASS`)
+
+Quand le réseau bloque OAuth Google et qu'aucun workaround ne marche, tu peux désactiver l'auth en dev pour pouvoir avancer sur le reste du projet. Dans `.env.local` :
+
+```
+AUTH_DEV_BYPASS=true
+```
+
+Redémarre `npm run dev`. À partir de là :
+
+- `auth()` court-circuite NextAuth et retourne une session synthétique pour l'utilisateur **`dev-bypass@local.test`** (créé automatiquement en DB au premier appel)
+- `/dashboard` est accessible sans cookie ni Google login
+- Un **bandeau jaune `⚠️ AUTH_DEV_BYPASS actif`** s'affiche en permanence sur les pages authentifiées pour rappeler que l'auth est désactivée
+- Toutes les actions (parties créées, etc.) sont rattachées au user `dev-bypass-user` en DB
+
+**Garde-fous** :
+- `lib/env.ts` **refuse au boot** la combinaison `AUTH_DEV_BYPASS=true` + `NODE_ENV=production` — impossible de déployer en prod par accident.
+- Le user fictif a un ID fixe (`dev-bypass-user`) pour ne pas en créer un nouveau à chaque redémarrage.
+- Désactive le bypass (`AUTH_DEV_BYPASS=false` ou suppression de la ligne) dès que la vraie auth fonctionne — le bandeau jaune est un rappel visuel.
 
 ### Postgres : "address already in use" sur 5432
 
