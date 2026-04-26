@@ -74,8 +74,21 @@ describe("env loader", () => {
     vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("AUTH_DEV_BYPASS", "true");
+    vi.stubEnv("NEXT_PHASE", undefined as unknown as string);
     await expect(import("@/lib/env")).rejects.toThrow(
       /AUTH_DEV_BYPASS=true is forbidden when NODE_ENV=production/,
     );
+  });
+
+  it("AUTH_DEV_BYPASS=true + NODE_ENV=production is ALLOWED during a Next.js build (NEXT_PHASE escape)", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/db");
+    vi.stubEnv("AUTH_SECRET", "x".repeat(32));
+    vi.stubEnv("AUTH_GOOGLE_ID", "id");
+    vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("AUTH_DEV_BYPASS", "true");
+    vi.stubEnv("NEXT_PHASE", "phase-production-build");
+    const { env } = await import("@/lib/env");
+    expect(env.AUTH_DEV_BYPASS).toBe(true);
   });
 });
