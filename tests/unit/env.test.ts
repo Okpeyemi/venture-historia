@@ -109,4 +109,29 @@ describe("env loader", () => {
     const { env } = await import("@/lib/env");
     expect(env.AUTH_DEV_BYPASS).toBe(true);
   });
+
+  it("MOCK_IA defaults to false when unset", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/db");
+    vi.stubEnv("AUTH_SECRET", "x".repeat(32));
+    vi.stubEnv("AUTH_GOOGLE_ID", "id");
+    vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test");
+    vi.stubEnv("MOCK_IA", undefined as unknown as string);
+    const { env } = await import("@/lib/env");
+    expect(env.MOCK_IA).toBe(false);
+  });
+
+  it("MOCK_IA=true is REFUSED at boot when NODE_ENV=production", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/db");
+    vi.stubEnv("AUTH_SECRET", "x".repeat(32));
+    vi.stubEnv("AUTH_GOOGLE_ID", "id");
+    vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("MOCK_IA", "true");
+    vi.stubEnv("NEXT_PHASE", undefined as unknown as string);
+    await expect(import("@/lib/env")).rejects.toThrow(
+      /MOCK_IA=true is forbidden when NODE_ENV=production/,
+    );
+  });
 });
