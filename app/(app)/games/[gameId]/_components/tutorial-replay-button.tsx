@@ -1,0 +1,31 @@
+"use client";
+
+import { useState } from "react";
+import { TUTORIAL_FLAG_KEY } from "@/lib/game/ui/tutorial-steps";
+import { TutorialOverlay } from "./tutorial-overlay";
+
+export function TutorialReplayButton() {
+  const [replaying, setReplaying] = useState(false);
+
+  const replay = () => {
+    try {
+      window.localStorage.removeItem(TUTORIAL_FLAG_KEY);
+    } catch {
+      // ignore
+    }
+    setReplaying(true);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={replay}
+        className="flex-shrink-0 rounded border border-help/40 px-2 py-0.5 text-[10px] text-help hover:bg-help/10"
+      >
+        Revoir le tutoriel
+      </button>
+      {replaying && <TutorialOverlay forceOpen />}
+    </>
+  );
+}
