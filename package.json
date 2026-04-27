@@ -16,6 +16,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.91.1",
     "@auth/drizzle-adapter": "1.11.2",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.4",
