@@ -53,3 +53,5 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
 ];
 
 export const TUTORIAL_FLAG_KEY = "vh_tutorial_seen_v1";
+
+export const TUTORIAL_REPLAY_EVENT = "vh:tutorial-replay";

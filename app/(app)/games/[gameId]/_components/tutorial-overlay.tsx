@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { TUTORIAL_STEPS, TUTORIAL_FLAG_KEY } from "@/lib/game/ui/tutorial-steps";
+import { TUTORIAL_STEPS, TUTORIAL_FLAG_KEY, TUTORIAL_REPLAY_EVENT } from "@/lib/game/ui/tutorial-steps";
 import { Button } from "@/components/ui/button";
 
 type Rect = { top: number; left: number; width: number; height: number } | null;
@@ -26,6 +26,16 @@ export function TutorialOverlay({ forceOpen = false }: { forceOpen?: boolean }) 
       // localStorage unavailable — silently skip the tutorial.
     }
   }, [forceOpen]);
+
+  // Listen for replay events to re-activate even after the flag was set.
+  useEffect(() => {
+    const onReplay = () => {
+      setActive(true);
+      setStepIndex(0);
+    };
+    window.addEventListener(TUTORIAL_REPLAY_EVENT, onReplay);
+    return () => window.removeEventListener(TUTORIAL_REPLAY_EVENT, onReplay);
+  }, []);
 
   // Compute spotlight rect when step changes.
   useEffect(() => {
