@@ -126,6 +126,16 @@ Redémarre `npm run dev`. À partir de là :
 - Le user fictif a un ID fixe (`dev-bypass-user`) pour ne pas en créer un nouveau à chaque redémarrage.
 - Désactive le bypass (`AUTH_DEV_BYPASS=false` ou suppression de la ligne) dès que la vraie auth fonctionne — le bandeau jaune est un rappel visuel.
 
+### IA mock pour le développement et les tests E2E (`MOCK_IA`)
+
+Pour développer/tester l'UI sans consommer de tokens Anthropic (et sans avoir besoin d'une clé valide), passe `MOCK_IA=true` dans `.env.local`. Tous les server actions construisent alors `MockGameMaster` au lieu de `AnthropicGameMaster`. Les réactions scriptées du preset (concurrents, événements macro) continuent de fonctionner — seule la narration libre de Claude est remplacée par "[mock] ...".
+
+```
+MOCK_IA=true
+```
+
+Les tests E2E (`npm run test:e2e`) activent automatiquement ce mode via `playwright.config.ts`. **Refusé au boot quand `NODE_ENV=production`** (comme `AUTH_DEV_BYPASS`).
+
 ### Postgres : "address already in use" sur 5432
 
 Le port hôte 5432 est probablement déjà occupé par un Postgres système (`systemctl status postgresql`). Ce projet utilise délibérément le port hôte 5433 (mapping Docker 5433:5432). Si tu vois cette erreur, vérifie que `docker-compose.yml` mappe bien `"5433:5432"` et que ton `DATABASE_URL` pointe sur `localhost:5433`.
