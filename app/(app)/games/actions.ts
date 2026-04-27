@@ -233,3 +233,16 @@ export async function validateNlActionAction(args: {
   revalidatePath(`/games/${args.gameId}`);
   return { ok: true };
 }
+
+export async function requestAdviceAction(gameId: string): Promise<string> {
+  const { game } = await requireGameOwnership(gameId);
+  if (game.status !== "in_progress") {
+    return "La partie est terminée — plus rien à conseiller.";
+  }
+  const currentRow = await loadTrimester(gameId, game.currentTrimesterIndex);
+  if (!currentRow) {
+    return "Trimestre courant introuvable.";
+  }
+  const advisor = buildAdvisor({ gameId });
+  return advisor.recommend(currentRow.state);
+}
