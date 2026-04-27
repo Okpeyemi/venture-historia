@@ -23,7 +23,7 @@ export function TextInput({
   onChange: (v: string) => void;
   placeholder?: string;
   type?: "text" | "number";
-} & React.InputHTMLAttributes<HTMLInputElement>) {
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type" | "placeholder">) {
   return (
     <input
       {...rest}
