@@ -5,17 +5,16 @@ import { validateNlActionAction } from "../../actions";
 
 type Verdict =
   | { kind: "idle" }
-  | { kind: "submitting" }
   | { kind: "accepted" }
   | { kind: "rejected"; reason: string };
 
 export function NlEscapeForm({ gameId }: { gameId: string }) {
   const [text, setText] = useState("");
   const [verdict, setVerdict] = useState<Verdict>({ kind: "idle" });
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const submit = () => {
-    setVerdict({ kind: "submitting" });
+    setVerdict({ kind: "idle" });
     startTransition(async () => {
       const result = await validateNlActionAction({
         gameId,
@@ -30,7 +29,7 @@ export function NlEscapeForm({ gameId }: { gameId: string }) {
     });
   };
 
-  const isSubmitting = verdict.kind === "submitting";
+  const isSubmitting = isPending;
 
   return (
     <div className="space-y-3">
