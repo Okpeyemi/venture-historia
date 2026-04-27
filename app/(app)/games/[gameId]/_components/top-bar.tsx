@@ -1,6 +1,7 @@
 import { advanceTrimesterAction } from "../../actions";
 import { MetricCell } from "@/components/ui/metric-cell";
 import { METRICS } from "@/lib/game/ui/metric-definitions";
+import { AdvanceButton } from "./advance-button";
 import type { GameState } from "@/lib/game/types";
 
 export function TopBar({ gameId, state }: { gameId: string; state: GameState }) {
@@ -43,13 +44,7 @@ export function TopBar({ gameId, state }: { gameId: string; state: GameState }) 
           await advanceTrimesterAction(gameId);
         }}
       >
-        <button
-          type="submit"
-          data-tutorial-target="advance"
-          className="rounded-md bg-success px-4 py-2 text-sm font-semibold text-white shadow-[0_2px_4px_rgba(16,185,129,0.3)] hover:opacity-90"
-        >
-          Avancer le trimestre →
-        </button>
+        <AdvanceButton />
       </form>
     </div>
   );

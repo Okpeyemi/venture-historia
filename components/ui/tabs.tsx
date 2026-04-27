@@ -1,16 +1,20 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 export function Tabs<T extends string>({
   value,
   onChange,
   options,
+  idPrefix,
 }: {
   value: T;
   onChange: (v: T) => void;
   options: { id: T; label: string }[];
+  idPrefix?: string;
 }) {
+  const auto = useId();
+  const prefix = idPrefix ?? auto;
   return (
     <div role="tablist" className="flex flex-wrap gap-1.5">
       {options.map((o) => {
@@ -20,7 +24,10 @@ export function Tabs<T extends string>({
             key={o.id}
             type="button"
             role="tab"
+            id={`${prefix}-tab-${o.id}`}
             aria-selected={active}
+            aria-controls={`${prefix}-panel-${o.id}`}
+            tabIndex={active ? 0 : -1}
             onClick={() => onChange(o.id)}
             className={`rounded px-2.5 py-1.5 text-xs font-medium transition ${
               active
@@ -36,6 +43,26 @@ export function Tabs<T extends string>({
   );
 }
 
-export function TabPanel({ children }: { children: ReactNode }) {
-  return <div role="tabpanel">{children}</div>;
+export function TabPanel({
+  id,
+  tabId,
+  children,
+}: {
+  id: string;
+  tabId: string;
+  children: ReactNode;
+}) {
+  return (
+    <div role="tabpanel" id={id} aria-labelledby={tabId}>
+      {children}
+    </div>
+  );
+}
+
+// Helper for callers: derive matching panel/tab IDs.
+export function tabIds(prefix: string, optionId: string) {
+  return {
+    tabId: `${prefix}-tab-${optionId}`,
+    panelId: `${prefix}-panel-${optionId}`,
+  };
 }

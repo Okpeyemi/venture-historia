@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { TUTORIAL_STEPS, TUTORIAL_FLAG_KEY, TUTORIAL_REPLAY_EVENT } from "@/lib/game/ui/tutorial-steps";
 import { Button } from "@/components/ui/button";
 
@@ -10,7 +10,6 @@ export function TutorialOverlay({ forceOpen = false }: { forceOpen?: boolean }) 
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState<Rect>(null);
-  const lastStepRef = useRef(0);
 
   // Mount decision: localStorage flag, unless forceOpen.
   useEffect(() => {
@@ -64,7 +63,8 @@ export function TutorialOverlay({ forceOpen = false }: { forceOpen?: boolean }) 
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
 
   const finish = () => {
     try {
@@ -79,7 +79,6 @@ export function TutorialOverlay({ forceOpen = false }: { forceOpen?: boolean }) 
     if (stepIndex >= TUTORIAL_STEPS.length - 1) {
       finish();
     } else {
-      lastStepRef.current = stepIndex;
       setStepIndex(stepIndex + 1);
     }
   };
