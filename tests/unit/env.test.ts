@@ -14,7 +14,17 @@ describe("env loader", () => {
     vi.stubEnv("AUTH_SECRET", "x".repeat(32));
     vi.stubEnv("AUTH_GOOGLE_ID", "id");
     vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test-key");
     await expect(import("@/lib/env")).rejects.toThrow(/DATABASE_URL/);
+  });
+
+  it("throws when ANTHROPIC_API_KEY is missing", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/db");
+    vi.stubEnv("AUTH_SECRET", "x".repeat(32));
+    vi.stubEnv("AUTH_GOOGLE_ID", "id");
+    vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    await expect(import("@/lib/env")).rejects.toThrow(/ANTHROPIC_API_KEY/);
   });
 
   it("returns a typed env object when all vars are set", async () => {
@@ -22,9 +32,11 @@ describe("env loader", () => {
     vi.stubEnv("AUTH_SECRET", "x".repeat(32));
     vi.stubEnv("AUTH_GOOGLE_ID", "id");
     vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test-key");
     const { env } = await import("@/lib/env");
     expect(env.DATABASE_URL).toBe("postgres://u:p@localhost:5432/db");
     expect(env.AUTH_GOOGLE_ID).toBe("id");
+    expect(env.ANTHROPIC_API_KEY).toBe("sk-ant-test-key");
   });
 
   it("throws when AUTH_SECRET is shorter than 32 chars", async () => {
@@ -32,6 +44,7 @@ describe("env loader", () => {
     vi.stubEnv("AUTH_SECRET", "x".repeat(31));
     vi.stubEnv("AUTH_GOOGLE_ID", "id");
     vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test-key");
     await expect(import("@/lib/env")).rejects.toThrow(/AUTH_SECRET/);
   });
 
@@ -40,6 +53,7 @@ describe("env loader", () => {
     vi.stubEnv("AUTH_SECRET", "x".repeat(32));
     vi.stubEnv("AUTH_GOOGLE_ID", "id");
     vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test-key");
     vi.stubEnv("NODE_ENV", undefined as unknown as string);
     const { env } = await import("@/lib/env");
     expect(env.NODE_ENV).toBe("production");
@@ -50,6 +64,7 @@ describe("env loader", () => {
     vi.stubEnv("AUTH_SECRET", "x".repeat(32));
     vi.stubEnv("AUTH_GOOGLE_ID", "id");
     vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test-key");
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("AUTH_DEV_BYPASS", undefined as unknown as string);
     const { env } = await import("@/lib/env");
@@ -61,6 +76,7 @@ describe("env loader", () => {
     vi.stubEnv("AUTH_SECRET", "x".repeat(32));
     vi.stubEnv("AUTH_GOOGLE_ID", "id");
     vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test-key");
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("AUTH_DEV_BYPASS", "true");
     const { env } = await import("@/lib/env");
@@ -72,6 +88,7 @@ describe("env loader", () => {
     vi.stubEnv("AUTH_SECRET", "x".repeat(32));
     vi.stubEnv("AUTH_GOOGLE_ID", "id");
     vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test-key");
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("AUTH_DEV_BYPASS", "true");
     vi.stubEnv("NEXT_PHASE", undefined as unknown as string);
@@ -85,6 +102,7 @@ describe("env loader", () => {
     vi.stubEnv("AUTH_SECRET", "x".repeat(32));
     vi.stubEnv("AUTH_GOOGLE_ID", "id");
     vi.stubEnv("AUTH_GOOGLE_SECRET", "secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test-key");
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("AUTH_DEV_BYPASS", "true");
     vi.stubEnv("NEXT_PHASE", "phase-production-build");
