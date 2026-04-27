@@ -2,7 +2,16 @@ import type { GameState } from "@/lib/game/types";
 
 export type ContextualHint = { id: string; message: string };
 
-const HINTS: Record<string, string> = {
+type HintId =
+  | "runway-critical"
+  | "burnout-high"
+  | "board-hostile"
+  | "runway-short"
+  | "first-trimester"
+  | "no-product-yet"
+  | "stable";
+
+const HINTS: Record<HintId, string> = {
   "runway-critical": "Faillite imminente. Lève des fonds ou licencie immédiatement.",
   "burnout-high": "Tu cours à l'épuisement. Évite les décisions risquées ce trimestre.",
   "board-hostile": "Le board est à cran — un putsch est possible. Calme le jeu.",
@@ -16,14 +25,14 @@ export function pickHint(state: GameState): ContextualHint {
   const ps = state.playerState;
   const hist = state.history;
 
-  if (ps.runwayMonths <= 3) return { id: "runway-critical", message: HINTS["runway-critical"]! };
-  if (ps.founderBurnout > 75) return { id: "burnout-high", message: HINTS["burnout-high"]! };
-  if (ps.boardTension > 70) return { id: "board-hostile", message: HINTS["board-hostile"]! };
-  if (ps.runwayMonths < 6) return { id: "runway-short", message: HINTS["runway-short"]! };
-  if (hist.trimestersPlayed === 0) return { id: "first-trimester", message: HINTS["first-trimester"]! };
+  if (ps.runwayMonths <= 3) return { id: "runway-critical", message: HINTS["runway-critical"] };
+  if (ps.founderBurnout > 75) return { id: "burnout-high", message: HINTS["burnout-high"] };
+  if (ps.boardTension > 70) return { id: "board-hostile", message: HINTS["board-hostile"] };
+  if (ps.runwayMonths < 6) return { id: "runway-short", message: HINTS["runway-short"] };
+  if (hist.trimestersPlayed === 0) return { id: "first-trimester", message: HINTS["first-trimester"] };
   const anyLaunched = ps.products.some((p) => p.stage === "shipped");
   if (!anyLaunched && hist.trimestersPlayed >= 4) {
-    return { id: "no-product-yet", message: HINTS["no-product-yet"]! };
+    return { id: "no-product-yet", message: HINTS["no-product-yet"] };
   }
-  return { id: "stable", message: HINTS["stable"]! };
+  return { id: "stable", message: HINTS["stable"] };
 }

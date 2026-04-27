@@ -82,6 +82,11 @@ describe("pickHint", () => {
     expect(r.id).toBe("runway-short");
   });
 
+  it("rule 4 boundary: runwayMonths = 4 fires runway-short, not runway-critical", () => {
+    const r = pickHint(baseState({ runwayMonths: 4 }));
+    expect(r.id).toBe("runway-short");
+  });
+
   it("rule 5: trimestersPlayed === 0 (and nothing more critical) → first-trimester", () => {
     const s = baseState({ runwayMonths: 12, founderBurnout: 30, boardTension: 20 });
     s.history.trimestersPlayed = 0;
