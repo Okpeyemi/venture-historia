@@ -1,1 +1,36 @@
 @import "tailwindcss";
+
+@theme {
+  /* Backgrounds & chrome */
+  --color-base: #0a0e1a;
+  --color-panel: #0f172a;
+  --color-panel-elev: #1e293b;
+  --color-border-subtle: #1e293b;
+  --color-border-default: #334155;
+
+  /* Text */
+  --color-text-primary: #f1f5f9;
+  --color-text-default: #e2e8f0;
+  --color-text-muted: #94a3b8;
+  --color-text-faint: #64748b;
+
+  /* Semantic accents */
+  --color-info: #3b82f6;
+  --color-help: #818cf8;
+  --color-advisor: #8b5cf6;
+  --color-success: #10b981;
+  --color-warn: #fb923c;
+  --color-crit: #ef4444;
+  --color-event: #f59e0b;
+  --color-event-bg: #fbbf24;
+
+  /* Fonts (variables are populated by next/font) */
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-serif: "Charter", "Iowan Old Style", Georgia, serif;
+}
+
+html, body {
+  background: var(--color-base);
+  color: var(--color-text-default);
+}
