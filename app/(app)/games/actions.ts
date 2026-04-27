@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { getPreset } from "@/lib/game/scenarios/registry";
 import { createGameFromPreset } from "@/lib/game/scenarios/persistence";
@@ -73,6 +74,7 @@ export async function addDecisionAction(args: {
     trimesterIndex: game.currentTrimesterIndex,
     decision,
   });
+  revalidatePath(`/games/${args.gameId}`);
 }
 
 export async function chooseEventChoiceAction(args: {
@@ -103,6 +105,7 @@ export async function chooseEventChoiceAction(args: {
       event: null,
     });
   }
+  revalidatePath(`/games/${args.gameId}`);
 }
 
 export async function advanceTrimesterAction(gameId: string): Promise<void> {
