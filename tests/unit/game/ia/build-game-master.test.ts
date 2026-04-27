@@ -60,3 +60,47 @@ describe("buildGameMaster", () => {
     expect(result.narration).toContain("[mock]");
   });
 });
+
+describe("buildValidator", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it("returns AnthropicValidator when MOCK_IA=false", async () => {
+    vi.stubEnv("MOCK_IA", "false");
+    const { buildValidator } = await import("@/lib/game/ia/build-game-master");
+    const { AnthropicValidator } = await import("@/lib/game/ia/anthropic/validator");
+    const v = buildValidator({ gameId: "g1" });
+    expect(v).toBeInstanceOf(AnthropicValidator);
+  });
+
+  it("returns MockValidator when MOCK_IA=true", async () => {
+    vi.stubEnv("MOCK_IA", "true");
+    const { buildValidator } = await import("@/lib/game/ia/build-game-master");
+    const { MockValidator } = await import("@/lib/game/ia/mock");
+    const v = buildValidator({ gameId: "g1" });
+    expect(v).toBeInstanceOf(MockValidator);
+  });
+});
+
+describe("buildAdvisor", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it("returns AnthropicAdvisor when MOCK_IA=false", async () => {
+    vi.stubEnv("MOCK_IA", "false");
+    const { buildAdvisor } = await import("@/lib/game/ia/build-game-master");
+    const { AnthropicAdvisor } = await import("@/lib/game/ia/anthropic/advisor");
+    const a = buildAdvisor({ gameId: "g1" });
+    expect(a).toBeInstanceOf(AnthropicAdvisor);
+  });
+
+  it("returns MockAdvisor when MOCK_IA=true", async () => {
+    vi.stubEnv("MOCK_IA", "true");
+    const { buildAdvisor } = await import("@/lib/game/ia/build-game-master");
+    const { MockAdvisor } = await import("@/lib/game/ia/mock");
+    const a = buildAdvisor({ gameId: "g1" });
+    expect(a).toBeInstanceOf(MockAdvisor);
+  });
+});
