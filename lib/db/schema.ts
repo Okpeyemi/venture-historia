@@ -74,6 +74,10 @@ export const games = pgTable("game", {
     .default("in_progress"),
   endingType: text("endingType"),
   endingSummary: text("endingSummary"),
+  pendingOpening: jsonb("pendingOpening").$type<{
+    narrationOpening: string;
+    event: TrimesterEvent | null;
+  } | null>(),
   currentTrimesterIndex: integer("currentTrimesterIndex").notNull().default(0),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),

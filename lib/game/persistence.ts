@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { games, trimesters } from "@/lib/db/schema";
 import type { Decision, GameState, TrimesterEvent, Ending, EndingKind } from "./types";
@@ -99,4 +99,90 @@ export async function endGame(args: {
     .where(and(eq(games.id, args.gameId), eq(games.status, "in_progress")))
     .returning({ id: games.id });
   return updated.length > 0;
+}
+
+/**
+ * Append a single Decision to the trimester row's `decisions` jsonb array
+ * without overwriting it. Uses Postgres jsonb concatenation. Throws if the
+ * game is not in_progress (defends against race conditions where the UI
+ * sends a decision after the player ended the game in another tab).
+ */
+export async function appendDecisionToTrimester(args: {
+  gameId: string;
+  trimesterIndex: number;
+  decision: Decision;
+}): Promise<void> {
+  // Verify the game is in_progress.
+  const [game] = await db
+    .select({ status: games.status })
+    .from(games)
+    .where(eq(games.id, args.gameId))
+    .limit(1);
+  if (!game || game.status !== "in_progress") {
+    throw new Error(
+      `appendDecisionToTrimester: game ${args.gameId} is not in_progress`,
+    );
+  }
+  await db
+    .update(trimesters)
+    .set({
+      decisions: sql`${trimesters.decisions} || ${JSON.stringify([args.decision])}::jsonb`,
+    })
+    .where(
+      and(
+        eq(trimesters.gameId, args.gameId),
+        eq(trimesters.trimesterIndex, args.trimesterIndex),
+      ),
+    );
+}
+
+/**
+ * Close a trimester: write the closing narration and the post-close state.
+ * The post-close state is also what becomes the starting state of the next
+ * trimester (the caller is responsible for inserting the next trimester
+ * row with that state).
+ */
+export async function closeTrimesterRow(args: {
+  gameId: string;
+  trimesterIndex: number;
+  narrationClosing: string;
+  postCloseState: GameState;
+}): Promise<void> {
+  await db
+    .update(trimesters)
+    .set({
+      narrationClosing: args.narrationClosing,
+      state: args.postCloseState,
+    })
+    .where(
+      and(
+        eq(trimesters.gameId, args.gameId),
+        eq(trimesters.trimesterIndex, args.trimesterIndex),
+      ),
+    );
+}
+
+/**
+ * Set the game's pending opening (narration + optional event) — what the
+ * player sees as the current trimester's intro. Cleared on advance.
+ */
+export async function setPendingOpening(args: {
+  gameId: string;
+  narrationOpening: string;
+  event: TrimesterEvent | null;
+}): Promise<void> {
+  await db
+    .update(games)
+    .set({
+      pendingOpening: { narrationOpening: args.narrationOpening, event: args.event },
+      updatedAt: new Date(),
+    })
+    .where(eq(games.id, args.gameId));
+}
+
+export async function clearPendingOpening(gameId: string): Promise<void> {
+  await db
+    .update(games)
+    .set({ pendingOpening: null, updatedAt: new Date() })
+    .where(eq(games.id, gameId));
 }

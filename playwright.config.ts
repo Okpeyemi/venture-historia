@@ -21,6 +21,11 @@ try {
   // env vars are injected by the runner.
 }
 
+// Override env for E2E: ensure both bypass + MOCK_IA are on, even if
+// the developer's .env.local has them off.
+process.env.AUTH_DEV_BYPASS = "true";
+process.env.MOCK_IA = "true";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
@@ -33,7 +38,7 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "npm run dev",
+    command: "MOCK_IA=true AUTH_DEV_BYPASS=true npm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

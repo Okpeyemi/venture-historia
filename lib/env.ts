@@ -20,6 +20,14 @@ const schema = z
       .enum(["true", "false"])
       .default("false")
       .transform((v) => v === "true"),
+    // Dev-only IA mock. When "true" AND NODE_ENV !== "production", server
+    // actions build MockGameMaster (no Claude calls). For E2E tests and
+    // local development without ANTHROPIC_API_KEY billing concerns.
+    // Refused at boot in production.
+    MOCK_IA: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((v) => v === "true"),
   })
   .refine(
     (data) => {
@@ -34,12 +42,15 @@ const schema = z
       // — so a real production server can still never boot with the
       // bypass active.
       if (process.env.NEXT_PHASE === "phase-production-build") return true;
-      return !(data.AUTH_DEV_BYPASS && data.NODE_ENV === "production");
+      if (data.AUTH_DEV_BYPASS && data.NODE_ENV === "production") return false;
+      if (data.MOCK_IA && data.NODE_ENV === "production") return false;
+      return true;
     },
     {
       message:
         "AUTH_DEV_BYPASS=true is forbidden when NODE_ENV=production. " +
-        "This flag exists only for local dev when real OAuth is unavailable.",
+        "MOCK_IA=true is forbidden when NODE_ENV=production. " +
+        "Both flags exist only for local dev and E2E tests.",
       path: ["AUTH_DEV_BYPASS"],
     },
   );
