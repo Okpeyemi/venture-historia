@@ -218,17 +218,30 @@ function StrategyForms({ submit, pending, state }: SubmitProps & { state: GameSt
 }
 
 function EndgameForms({ submit, pending }: SubmitProps) {
+  const confirmEnd = (label: string, action: Action) => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(`Déclarer "${label}" termine la partie immédiatement. Continuer ?`)
+    ) {
+      return;
+    }
+    submit(action);
+  };
   return (
     <div className="space-y-3">
       <p className="text-sm text-neutral-400">
         Déclarer une sortie termine la partie immédiatement.
       </p>
-      <SubmitBtn pending={pending} label="🎉 IPO" onClick={() => submit({ kind: "endgame.declareIPO" })} />
+      <SubmitBtn
+        pending={pending}
+        label="🎉 IPO"
+        onClick={() => confirmEnd("IPO", { kind: "endgame.declareIPO" })}
+      />
       <SubmitBtn
         pending={pending}
         label="🤝 Acquisition (BigCorp / $50M)"
         onClick={() =>
-          submit({
+          confirmEnd("Acquisition", {
             kind: "endgame.acceptAcquisition",
             acquirerName: "BigCorp",
             price: 50_000_000,
@@ -238,12 +251,12 @@ function EndgameForms({ submit, pending }: SubmitProps) {
       <SubmitBtn
         pending={pending}
         label="🏡 Lifestyle business"
-        onClick={() => submit({ kind: "endgame.declareLifestyle" })}
+        onClick={() => confirmEnd("Lifestyle business", { kind: "endgame.declareLifestyle" })}
       />
       <SubmitBtn
         pending={pending}
         label="👑 Conglomérat"
-        onClick={() => submit({ kind: "endgame.declareConglomerate" })}
+        onClick={() => confirmEnd("Conglomérat", { kind: "endgame.declareConglomerate" })}
       />
     </div>
   );

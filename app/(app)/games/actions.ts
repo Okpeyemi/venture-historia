@@ -14,16 +14,32 @@ import {
   setPendingOpening,
   clearPendingOpening,
   endGame,
+  type GameRow,
 } from "@/lib/game/persistence";
 import { buildGameMaster } from "@/lib/game/ia/build-game-master";
 import { detectAutoEnding, applyPlayerEnding } from "@/lib/game/endings";
-import { processAction } from "@/lib/game/actions";
-import type { Action, Decision, GameState } from "@/lib/game/types";
+import type { Action, Decision } from "@/lib/game/types";
 
 async function requireUserId(): Promise<string> {
   const session = await auth();
-  if (!session?.user?.id) throw new Error("unauthenticated");
+  if (!session?.user?.id) redirect("/signin");
   return session.user.id;
+}
+
+/**
+ * Load a game and verify the caller owns it. Returns the game row + the
+ * authenticated userId. Throws "not found" semantics (not "forbidden") to
+ * avoid leaking which gameIds exist for other users.
+ */
+async function requireGameOwnership(
+  gameId: string,
+): Promise<{ userId: string; game: GameRow }> {
+  const userId = await requireUserId();
+  const game = await loadGame(gameId);
+  if (!game || game.userId !== userId) {
+    throw new Error(`game not found: ${gameId}`);
+  }
+  return { userId, game };
 }
 
 export async function createGameAction(presetId: string): Promise<void> {
@@ -63,9 +79,8 @@ export async function addDecisionAction(args: {
   gameId: string;
   action: Action;
 }): Promise<void> {
-  await requireUserId();
-  const game = await loadGame(args.gameId);
-  if (!game || game.status !== "in_progress") {
+  const { game } = await requireGameOwnership(args.gameId);
+  if (game.status !== "in_progress") {
     throw new Error("addDecisionAction: game not in_progress");
   }
   const decision: Decision = { kind: "action", action: args.action };
@@ -82,9 +97,8 @@ export async function chooseEventChoiceAction(args: {
   eventId: string;
   choiceId: string;
 }): Promise<void> {
-  await requireUserId();
-  const game = await loadGame(args.gameId);
-  if (!game || game.status !== "in_progress") {
+  const { game } = await requireGameOwnership(args.gameId);
+  if (game.status !== "in_progress") {
     throw new Error("chooseEventChoiceAction: game not in_progress");
   }
   const decision: Decision = {
@@ -109,9 +123,8 @@ export async function chooseEventChoiceAction(args: {
 }
 
 export async function advanceTrimesterAction(gameId: string): Promise<void> {
-  await requireUserId();
-  const game = await loadGame(gameId);
-  if (!game || game.status !== "in_progress") {
+  const { game } = await requireGameOwnership(gameId);
+  if (game.status !== "in_progress") {
     throw new Error("advanceTrimesterAction: game not in_progress");
   }
   const preset = getPreset(game.scenarioPresetId);
@@ -120,30 +133,20 @@ export async function advanceTrimesterAction(gameId: string): Promise<void> {
   const currentRow = await loadTrimester(gameId, game.currentTrimesterIndex);
   if (!currentRow) throw new Error("advanceTrimesterAction: current trimester row missing");
 
-  // 1. Apply each structured-action decision deterministically. Pure
-  //    processors mutate the state predictably — the GM only narrates.
-  let postActionState: GameState = currentRow.state;
-  for (const d of currentRow.decisions) {
-    if (d.kind !== "action") continue;
-    try {
-      postActionState = processAction(postActionState, d.action);
-    } catch {
-      // Invalid action — skip; the IA cost was paid but the state stays
-      // safe. Plan #5b's NL escape will surface validator rejects to the
-      // UI; for now we just no-op invalid structured actions.
-    }
-  }
-
-  // 2. Run the GM close on the post-action state (GM produces narration
-  //    only; state is already advanced by the processors above).
+  // Run the GM close — its inner pipeline (MockGameMaster.closeTrimester)
+  // already applies each structured-action decision via processAction,
+  // computes burnout deltas, ticks consequences, and advances time. We
+  // pass the trimester's starting state, NOT a pre-applied state — doing
+  // so would double-apply every action. The GM is the single owner of
+  // "fold decisions into next state" per Plan #2's contract.
   const gm = buildGameMaster({
     preset,
     gameId,
     trimesterIndex: game.currentTrimesterIndex,
   });
-  const closing = await gm.closeTrimester(postActionState, currentRow.decisions);
+  const closing = await gm.closeTrimester(currentRow.state, currentRow.decisions);
 
-  // 3. Persist the close — narration + post-close state on the current row.
+  // Persist the close — narration + post-close state on the current row.
   await closeTrimesterRow({
     gameId,
     trimesterIndex: game.currentTrimesterIndex,
@@ -151,8 +154,8 @@ export async function advanceTrimesterAction(gameId: string): Promise<void> {
     postCloseState: closing.newState,
   });
 
-  // 4. Detect auto-endings BEFORE opening the next trimester. If the game
-  //    just ended, persist the ending and stop.
+  // Detect auto-endings BEFORE opening the next trimester. If the game
+  // just ended, persist the ending and stop.
   const ending = detectAutoEnding(closing.newState);
   if (ending) {
     await endGame({ gameId, ending });
@@ -160,7 +163,7 @@ export async function advanceTrimesterAction(gameId: string): Promise<void> {
     redirect(`/games/${gameId}/end`);
   }
 
-  // 5. Open the next trimester.
+  // Open the next trimester.
   const nextIndex = game.currentTrimesterIndex + 1;
   const nextGm = buildGameMaster({ preset, gameId, trimesterIndex: nextIndex });
   const opening = await nextGm.openTrimester(closing.newState);
@@ -186,9 +189,8 @@ export async function declarePlayerEndingAction(args: {
   gameId: string;
   action: Action;
 }): Promise<void> {
-  await requireUserId();
-  const game = await loadGame(args.gameId);
-  if (!game || game.status !== "in_progress") {
+  const { game } = await requireGameOwnership(args.gameId);
+  if (game.status !== "in_progress") {
     throw new Error("declarePlayerEndingAction: game not in_progress");
   }
   const currentRow = await loadTrimester(args.gameId, game.currentTrimesterIndex);
