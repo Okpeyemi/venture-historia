@@ -78,6 +78,9 @@ describe("METRICS.tone", () => {
   it("runway: 4 → warn (between thresholds)", () => {
     expect(tone("runway", baseState({ runwayMonths: 4 }))).toBe("warn");
   });
+  it("runway: 5 → warn (upper interior of warn band)", () => {
+    expect(tone("runway", baseState({ runwayMonths: 5 }))).toBe("warn");
+  });
   it("runway: 6 → neutral (lower bound of safe)", () => {
     expect(tone("runway", baseState({ runwayMonths: 6 }))).toBe("neutral");
   });
@@ -89,6 +92,9 @@ describe("METRICS.tone", () => {
     expect(tone("burnout", baseState({ founderBurnout: 91 }))).toBe("crit");
   });
 
+  it("boardTension: 70 → neutral (exact boundary, not > 70)", () => {
+    expect(tone("boardTension", baseState({ boardTension: 70 }))).toBe("neutral");
+  });
   it("boardTension: 71 → warn", () => {
     expect(tone("boardTension", baseState({ boardTension: 71 }))).toBe("warn");
   });
