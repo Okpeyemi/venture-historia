@@ -1,11 +1,10 @@
 import { anthropicClient, withRetry } from "./client";
 import { recordIaCall } from "./cost-log";
 import { serializeForPrompt } from "./state-serializer";
-import { ADVISOR_SYSTEM } from "./prompts";
+import { DEFAULT_MODEL, ADVISOR_SYSTEM } from "./prompts";
 import type { IAdvisor } from "../types";
 import type { GameState } from "@/lib/game/types";
 
-const DEFAULT_MODEL = "claude-sonnet-4-6";
 const DEFAULT_MAX_TOKENS = 512;
 
 export type AnthropicAdvisorOptions = {

@@ -1,11 +1,10 @@
 import { anthropicClient, withRetry } from "./client";
 import { recordIaCall } from "./cost-log";
 import { serializeForPrompt } from "./state-serializer";
-import { VALIDATOR_SYSTEM, TOOL_VALIDATE_ACTION } from "./prompts";
+import { DEFAULT_MODEL, VALIDATOR_SYSTEM, TOOL_VALIDATE_ACTION } from "./prompts";
 import type { IValidator, ValidatorVerdict } from "../types";
 import type { Action, GameState } from "@/lib/game/types";
 
-const DEFAULT_MODEL = "claude-sonnet-4-6";
 const DEFAULT_MAX_TOKENS = 512;
 
 export type AnthropicValidatorOptions = {

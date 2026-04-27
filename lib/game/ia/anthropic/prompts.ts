@@ -1,6 +1,12 @@
 // System prompts and tool definitions for each agent. Kept here as
 // constants so prompt iteration is grep-friendly and reviewable.
 
+// Single source of truth for the default model used by every agent.
+// Plan #7 will introduce per-feature tier selection (Haiku for Validator,
+// Opus for endings, etc.) and pass an explicit `model` option per call.
+// Until then, every agent shares this default.
+export const DEFAULT_MODEL = "claude-sonnet-4-6";
+
 export const GAME_MASTER_SYSTEM = `Tu es le Game Master narratif de Venture Historia, un sim entrepreneurial.
 Ton rôle: narrer l'évolution d'une entreprise à travers ses trimestres,
 en français, dans un ton réaliste et immersif. Tu reçois l'état complet

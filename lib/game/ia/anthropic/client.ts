@@ -37,10 +37,30 @@ export async function withRetry<T>(
     } catch (err) {
       const isTransient = isTransientAnthropicError(err);
       if (!isTransient || attempt >= maxAttempts) throw err;
-      const delay = baseDelayMs * 2 ** (attempt - 1);
+      // Honor server-supplied Retry-After when present (Anthropic returns it
+      // on 429); otherwise fall back to exponential backoff.
+      const serverDelay = parseRetryAfterMs(err);
+      const delay = serverDelay ?? baseDelayMs * 2 ** (attempt - 1);
       await new Promise((r) => setTimeout(r, delay));
     }
   }
+}
+
+function parseRetryAfterMs(err: unknown): number | null {
+  if (!err || typeof err !== "object") return null;
+  const headers = (err as { headers?: Record<string, string | undefined> }).headers;
+  const raw = headers?.["retry-after"];
+  if (!raw) return null;
+  // Format 1: integer seconds.
+  const seconds = Number(raw);
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.floor(seconds * 1000);
+  // Format 2: HTTP-date.
+  const dateMs = Date.parse(raw);
+  if (Number.isFinite(dateMs)) {
+    const delta = dateMs - Date.now();
+    return delta > 0 ? delta : 0;
+  }
+  return null;
 }
 
 function isTransientAnthropicError(err: unknown): boolean {

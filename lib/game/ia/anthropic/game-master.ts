@@ -2,6 +2,7 @@ import { anthropicClient, withRetry } from "./client";
 import { recordIaCall } from "./cost-log";
 import { serializeForPrompt } from "./state-serializer";
 import {
+  DEFAULT_MODEL,
   GAME_MASTER_SYSTEM,
   TOOL_APPLY_TRIMESTER_OPEN,
   TOOL_APPLY_TRIMESTER_CLOSE,
@@ -14,7 +15,6 @@ import type {
 import type { Decision, GameState, TrimesterEvent } from "@/lib/game/types";
 import { MockGameMaster } from "../mock";
 
-const DEFAULT_MODEL = "claude-sonnet-4-6";
 const DEFAULT_MAX_TOKENS = 1024;
 
 export type AnthropicGameMasterOptions = {
