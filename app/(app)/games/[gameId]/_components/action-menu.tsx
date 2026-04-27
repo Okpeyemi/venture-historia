@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ActionForms } from "./action-forms";
 import type { GameState } from "@/lib/game/types";
 
-const CATEGORIES = ["finance", "team", "product", "market", "strategy", "endgame"] as const;
+const CATEGORIES = ["finance", "team", "product", "market", "strategy", "nl", "endgame"] as const;
 type Category = (typeof CATEGORIES)[number];
 
 const LABELS: Record<Category, string> = {
@@ -13,6 +13,7 @@ const LABELS: Record<Category, string> = {
   product: "🚀 Produit",
   market: "📈 Marché",
   strategy: "🤝 Stratégie",
+  nl: "📝 Action libre",
   endgame: "🏁 Sortie",
 };
 

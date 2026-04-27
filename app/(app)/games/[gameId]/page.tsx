@@ -7,6 +7,7 @@ import { TrimesterNarration } from "./_components/trimester-narration";
 import { DecisionList } from "./_components/decision-list";
 import { ActionMenu } from "./_components/action-menu";
 import { EventModal } from "./_components/event-modal";
+import { AdvisorPanel } from "./_components/advisor-panel";
 
 export default async function GamePage({
   params,
@@ -36,6 +37,8 @@ export default async function GamePage({
       <TrimesterNarration narrationOpening={opening?.narrationOpening ?? null} />
 
       <DecisionList decisions={currentRow.decisions} />
+
+      <AdvisorPanel gameId={gameId} />
 
       <ActionMenu gameId={gameId} state={currentRow.state} />
 

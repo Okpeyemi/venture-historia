@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import { addDecisionAction, declarePlayerEndingAction } from "../../actions";
 import type { Action, GameState } from "@/lib/game/types";
+import { NlEscapeForm } from "./nl-escape-form";
 
-type Category = "finance" | "team" | "product" | "market" | "strategy" | "endgame";
+type Category = "finance" | "team" | "product" | "market" | "strategy" | "nl" | "endgame";
 
 export function ActionForms({
   gameId,
@@ -27,6 +28,7 @@ export function ActionForms({
   if (category === "market") return <MarketForms submit={submit} pending={isPending} />;
   if (category === "strategy")
     return <StrategyForms submit={submit} pending={isPending} state={state} />;
+  if (category === "nl") return <NlEscapeForm gameId={gameId} />;
   return <EndgameForms submit={submitEnding} pending={isPending} />;
 }
 

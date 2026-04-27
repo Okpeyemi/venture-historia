@@ -113,3 +113,16 @@ export class MockAdvisor implements IAdvisor {
     return "[mock advice] State looks healthy. Keep building.";
   }
 }
+
+/**
+ * Test-only validator that always accepts the input as a fixed canonical
+ * Action. Use to exercise the acceptance path of validateNlActionAction
+ * without depending on the real Anthropic SDK.
+ */
+export class MockValidatorAccepting implements IValidator {
+  constructor(private readonly action: import("../types").Action) {}
+
+  async validate(_state: GameState, _naturalLanguage: string): Promise<ValidatorVerdict> {
+    return { accepted: true, action: this.action };
+  }
+}
