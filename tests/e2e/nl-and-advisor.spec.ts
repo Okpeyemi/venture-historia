@@ -1,6 +1,12 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("NL escape + Advisor", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem("vh_tutorial_seen_v1", "true");
+    });
+  });
+
   test("NL submit shows the mock validator's rejection reason", async ({ page }) => {
     await page.goto("/dashboard");
     await page

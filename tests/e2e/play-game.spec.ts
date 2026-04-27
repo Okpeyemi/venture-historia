@@ -7,6 +7,10 @@ test.describe("game playthrough", () => {
     // Auto-accept the confirmation dialog the IPO button triggers.
     page.on("dialog", (d) => d.accept());
 
+    await page.addInitScript(() => {
+      window.localStorage.setItem("vh_tutorial_seen_v1", "true");
+    });
+
     // Bypass auth — we're authenticated as dev-bypass-user.
     await page.goto("/dashboard");
     await expect(
@@ -22,7 +26,7 @@ test.describe("game playthrough", () => {
     // Land on the game page.
     await expect(page).toHaveURL(/\/games\/[^/]+$/);
     await expect(page.getByText("NimbusCRM")).toBeVisible();
-    await expect(page.getByText("Q1 2005").first()).toBeVisible();
+    await expect(page.getByText(/Q1.+2005/).first()).toBeVisible();
     // SF 2005 preset starts at $50k cash. Locale-tolerant: matches
     // "$50,000" (en) or "$50 000" (fr) since toLocaleString() output
     // depends on Node's locale at render time.
@@ -41,7 +45,7 @@ test.describe("game playthrough", () => {
 
     // Should land back on the game page (next trimester).
     await expect(page).toHaveURL(/\/games\/[^/]+$/);
-    await expect(page.getByText("Q2 2005").first()).toBeVisible();
+    await expect(page.getByText(/Q2.+2005/).first()).toBeVisible();
 
     // Cash should be exactly $550,000 ($50k initial + $500k raise, applied
     // ONCE). If it shows $1,050,000, the action was double-applied — that
