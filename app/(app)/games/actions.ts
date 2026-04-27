@@ -16,7 +16,7 @@ import {
   endGame,
   type GameRow,
 } from "@/lib/game/persistence";
-import { buildGameMaster } from "@/lib/game/ia/build-game-master";
+import { buildGameMaster, buildValidator, buildAdvisor } from "@/lib/game/ia/build-game-master";
 import { detectAutoEnding, applyPlayerEnding } from "@/lib/game/endings";
 import type { Action, Decision } from "@/lib/game/types";
 
@@ -199,4 +199,37 @@ export async function declarePlayerEndingAction(args: {
   await endGame({ gameId: args.gameId, ending });
   await clearPendingOpening(args.gameId);
   redirect(`/games/${args.gameId}/end`);
+}
+
+export async function validateNlActionAction(args: {
+  gameId: string;
+  naturalLanguage: string;
+}): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const { game } = await requireGameOwnership(args.gameId);
+  if (game.status !== "in_progress") {
+    return { ok: false, reason: "La partie est terminée." };
+  }
+  const text = args.naturalLanguage.trim();
+  if (!text) {
+    return { ok: false, reason: "Tape une action avant de valider." };
+  }
+
+  const currentRow = await loadTrimester(args.gameId, game.currentTrimesterIndex);
+  if (!currentRow) {
+    return { ok: false, reason: "Trimestre courant introuvable." };
+  }
+
+  const validator = buildValidator({ gameId: args.gameId });
+  const verdict = await validator.validate(currentRow.state, text);
+  if (!verdict.accepted) {
+    return { ok: false, reason: verdict.reason };
+  }
+
+  await appendDecisionToTrimester({
+    gameId: args.gameId,
+    trimesterIndex: game.currentTrimesterIndex,
+    decision: { kind: "action", action: verdict.action },
+  });
+  revalidatePath(`/games/${args.gameId}`);
+  return { ok: true };
 }
