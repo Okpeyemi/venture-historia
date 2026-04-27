@@ -95,3 +95,20 @@ export const trimesters = pgTable(
   },
   (t) => [primaryKey({ columns: [t.gameId, t.trimesterIndex] })],
 );
+
+export const iaCallLog = pgTable("iaCallLog", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  // gameId nullable: validator/advisor calls can happen outside a game
+  // context (e.g. preset preview). When set, references games(id).
+  gameId: text("gameId").references(() => games.id, { onDelete: "cascade" }),
+  trimesterIndex: integer("trimesterIndex"),
+  agentRole: text("agentRole", {
+    enum: ["game_master_open", "game_master_close", "validator", "advisor"],
+  }).notNull(),
+  model: text("model").notNull(),
+  inputTokensTotal: integer("inputTokensTotal").notNull(),
+  inputTokensCached: integer("inputTokensCached").notNull().default(0),
+  outputTokens: integer("outputTokens").notNull(),
+  costUsd: text("costUsd").notNull(), // stored as string to avoid float drift; format "0.012345"
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
