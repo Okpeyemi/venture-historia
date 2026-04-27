@@ -1,6 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
+import { Panel } from "@/components/ui/panel";
+import { Button } from "@/components/ui/button";
 import { chooseEventChoiceAction } from "../../actions";
 import type { TrimesterEvent } from "@/lib/game/types";
 
@@ -17,22 +19,22 @@ export function EventModal({
       chooseEventChoiceAction({ gameId, eventId: event.id, choiceId }),
     );
   return (
-    <div className="rounded-lg border-2 border-amber-600 bg-amber-950/30 p-6">
-      <div className="mb-2 text-sm uppercase text-amber-500">⚡ Événement</div>
-      <p className="mb-4 leading-relaxed">{event.situation}</p>
+    <Panel title="⚡ Événement" badge="Réagis" variant="alert">
+      <p className="mb-3 text-[13px] leading-[1.5] text-text-default">{event.situation}</p>
       <div className="flex flex-col gap-2">
         {event.choices.map((c) => (
-          <button
+          <Button
             key={c.id}
-            type="button"
+            variant="secondary"
+            size="md"
             disabled={isPending}
             onClick={() => choose(c.id)}
-            className="rounded-md border border-amber-700 bg-amber-900/40 px-4 py-2 text-left text-sm hover:bg-amber-800/50 disabled:opacity-50"
+            className="!justify-start text-left !border-event/40 hover:!bg-event/10"
           >
             {c.label}
-          </button>
+          </Button>
         ))}
       </div>
-    </div>
+    </Panel>
   );
 }
