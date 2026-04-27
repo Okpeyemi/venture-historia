@@ -16,7 +16,7 @@ test.describe("NL escape + Advisor", () => {
     await expect(page).toHaveURL(/\/games\/[^/]+$/);
 
     // Open the new "Action libre" tab.
-    await page.getByRole("button", { name: /Action libre/ }).click();
+    await page.getByRole("tab", { name: /Action libre/ }).click();
 
     // Type a free-form action and submit.
     await page

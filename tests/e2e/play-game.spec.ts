@@ -36,7 +36,7 @@ test.describe("game playthrough", () => {
     // The first "Ajouter" button is "Lever des fonds" (default values:
     // seed round, $500,000, 15% equity, "Northstar Capital", 1 board seat,
     // no veto).
-    await page.getByRole("button", { name: /Finance/ }).click();
+    await page.getByRole("tab", { name: /Finance/ }).click();
     await page.getByRole("button", { name: "Ajouter" }).first().click();
     await expect(page.getByText(/finance\.raiseFunds/)).toBeVisible();
 
@@ -54,7 +54,7 @@ test.describe("game playthrough", () => {
     await expect(page.getByText(/\$550[,\s ]000/)).toBeVisible();
 
     // Declare an IPO ending.
-    await page.getByRole("button", { name: /Sortie/ }).click();
+    await page.getByRole("tab", { name: /Sortie/ }).click();
     await page.getByRole("button", { name: /IPO/ }).click();
 
     // Should land on the end screen.
