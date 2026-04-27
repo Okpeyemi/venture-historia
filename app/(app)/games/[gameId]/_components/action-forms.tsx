@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Field, TextInput, Select, Checkbox } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 import { addDecisionAction, declarePlayerEndingAction } from "../../actions";
 import type { Action, GameState } from "@/lib/game/types";
 import { NlEscapeForm } from "./nl-escape-form";
@@ -23,16 +25,19 @@ export function ActionForms({
     startTransition(() => declarePlayerEndingAction({ gameId, action }));
 
   if (category === "finance") return <FinanceForms submit={submit} pending={isPending} />;
-  if (category === "team") return <TeamForms submit={submit} pending={isPending} />;
+  if (category === "team")    return <TeamForms submit={submit} pending={isPending} />;
   if (category === "product") return <ProductForms submit={submit} pending={isPending} state={state} />;
-  if (category === "market") return <MarketForms submit={submit} pending={isPending} />;
-  if (category === "strategy")
-    return <StrategyForms submit={submit} pending={isPending} state={state} />;
-  if (category === "nl") return <NlEscapeForm gameId={gameId} />;
+  if (category === "market")  return <MarketForms submit={submit} pending={isPending} />;
+  if (category === "strategy")return <StrategyForms submit={submit} pending={isPending} state={state} />;
+  if (category === "nl")      return <NlEscapeForm gameId={gameId} />;
   return <EndgameForms submit={submitEnding} pending={isPending} />;
 }
 
 type SubmitProps = { submit: (a: Action) => void; pending: boolean };
+
+function Row({ children }: { children: React.ReactNode }) {
+  return <div className="grid grid-cols-3 gap-3 mb-2.5">{children}</div>;
+}
 
 function FinanceForms({ submit, pending }: SubmitProps) {
   const [round, setRound] = useState<"seed" | "A" | "B" | "C">("seed");
@@ -44,45 +49,36 @@ function FinanceForms({ submit, pending }: SubmitProps) {
   const [allocCategory, setAllocCategory] = useState<"marketing" | "rd" | "ops">("marketing");
   const [allocAmount, setAllocAmount] = useState("10000");
   return (
-    <div className="space-y-4">
-      <Box title="Lever des fonds">
+    <div className="flex flex-col gap-4">
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Lever des fonds</h3>
         <Row>
-          <Select label="Round" value={round} onChange={(v) => setRound(v as "seed" | "A" | "B" | "C")} options={["seed", "A", "B", "C"]} />
-          <NumInput label="Montant ($)" value={amount} onChange={setAmount} />
-          <NumInput label="Équité (%)" value={equityPct} onChange={setEquityPct} />
+          <Field label="Round"><Select value={round} onChange={(v) => setRound(v as "seed" | "A" | "B" | "C")} options={["seed", "A", "B", "C"] as const} /></Field>
+          <Field label="Montant ($)"><TextInput value={amount} onChange={setAmount} /></Field>
+          <Field label="Équité (%)"><TextInput value={equityPct} onChange={setEquityPct} /></Field>
         </Row>
         <Row>
-          <TextInput label="Investisseur" value={investorName} onChange={setInvestorName} />
-          <NumInput label="Sièges board" value={boardSeats} onChange={setBoardSeats} />
-          <Check label="Veto" checked={hasVeto} onChange={setHasVeto} />
+          <Field label="Investisseur"><TextInput value={investorName} onChange={setInvestorName} /></Field>
+          <Field label="Sièges board"><TextInput value={boardSeats} onChange={setBoardSeats} /></Field>
+          <Field label="Veto"><Checkbox label="Droit de veto" checked={hasVeto} onChange={setHasVeto} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() =>
-            submit({
-              kind: "finance.raiseFunds",
-              round,
-              amount: Number(amount),
-              equityPct: Number(equityPct),
-              investorName,
-              boardSeats: Number(boardSeats),
-              hasVeto,
-            })
-          }
-        />
-      </Box>
-      <Box title="Allouer un budget">
+        <Button
+          variant="primary" size="sm" disabled={pending}
+          onClick={() => submit({ kind: "finance.raiseFunds", round, amount: Number(amount), equityPct: Number(equityPct), investorName, boardSeats: Number(boardSeats), hasVeto })}
+        >
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Allouer un budget</h3>
         <Row>
-          <Select label="Catégorie" value={allocCategory} onChange={(v) => setAllocCategory(v as "marketing" | "rd" | "ops")} options={["marketing", "rd", "ops"]} />
-          <NumInput label="Montant ($)" value={allocAmount} onChange={setAllocAmount} />
+          <Field label="Catégorie"><Select value={allocCategory} onChange={(v) => setAllocCategory(v as "marketing" | "rd" | "ops")} options={["marketing", "rd", "ops"] as const} /></Field>
+          <Field label="Montant ($)"><TextInput value={allocAmount} onChange={setAllocAmount} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() =>
-            submit({ kind: "finance.allocateBudget", category: allocCategory, amount: Number(allocAmount) })
-          }
-        />
-      </Box>
+        <Button variant="primary" size="sm" disabled={pending} onClick={() => submit({ kind: "finance.allocateBudget", category: allocCategory, amount: Number(allocAmount) })}>
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -92,26 +88,26 @@ function TeamForms({ submit, pending }: SubmitProps) {
   const [salary, setSalary] = useState("120000");
   const [fireCount, setFireCount] = useState("1");
   return (
-    <div className="space-y-4">
-      <Box title="Embaucher">
+    <div className="flex flex-col gap-4">
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Embaucher</h3>
         <Row>
-          <Select label="Niveau" value={level} onChange={(v) => setLevel(v as "junior" | "senior" | "exec")} options={["junior", "senior", "exec"]} />
-          <NumInput label="Salaire annuel ($)" value={salary} onChange={setSalary} />
+          <Field label="Niveau"><Select value={level} onChange={(v) => setLevel(v as "junior" | "senior" | "exec")} options={["junior", "senior", "exec"] as const} /></Field>
+          <Field label="Salaire annuel ($)"><TextInput value={salary} onChange={setSalary} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() => submit({ kind: "team.hire", level, salaryAnnual: Number(salary) })}
-        />
-      </Box>
-      <Box title="Licencier">
+        <Button variant="primary" size="sm" disabled={pending} onClick={() => submit({ kind: "team.hire", level, salaryAnnual: Number(salary) })}>
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Licencier</h3>
         <Row>
-          <NumInput label="Nombre" value={fireCount} onChange={setFireCount} />
+          <Field label="Nombre"><TextInput value={fireCount} onChange={setFireCount} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() => submit({ kind: "team.fire", count: Number(fireCount) })}
-        />
-      </Box>
+        <Button variant="primary" size="sm" disabled={pending} onClick={() => submit({ kind: "team.fire", count: Number(fireCount) })}>
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -119,36 +115,28 @@ function TeamForms({ submit, pending }: SubmitProps) {
 function ProductForms({ submit, pending, state }: SubmitProps & { state: GameState }) {
   const [name, setName] = useState("Nouveau produit");
   const [quarters, setQuarters] = useState("3");
-  const [launchName, setLaunchName] = useState(
-    state.playerState.products[0]?.name ?? "",
-  );
+  const [launchName, setLaunchName] = useState(state.playerState.products[0]?.name ?? "");
   return (
-    <div className="space-y-4">
-      <Box title="Démarrer R&D">
+    <div className="flex flex-col gap-4">
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Démarrer R&amp;D</h3>
         <Row>
-          <TextInput label="Nom" value={name} onChange={setName} />
-          <NumInput label="Trimestres" value={quarters} onChange={setQuarters} />
+          <Field label="Nom"><TextInput value={name} onChange={setName} /></Field>
+          <Field label="Trimestres"><TextInput value={quarters} onChange={setQuarters} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() =>
-            submit({
-              kind: "product.startRD",
-              productName: name,
-              quartersUntilLaunch: Number(quarters),
-            })
-          }
-        />
-      </Box>
-      <Box title="Lancer un produit existant">
+        <Button variant="primary" size="sm" disabled={pending} onClick={() => submit({ kind: "product.startRD", productName: name, quartersUntilLaunch: Number(quarters) })}>
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Lancer un produit existant</h3>
         <Row>
-          <TextInput label="Nom du produit" value={launchName} onChange={setLaunchName} />
+          <Field label="Nom du produit"><TextInput value={launchName} onChange={setLaunchName} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() => submit({ kind: "product.launch", productName: launchName })}
-        />
-      </Box>
+        <Button variant="primary" size="sm" disabled={pending} onClick={() => submit({ kind: "product.launch", productName: launchName })}>
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -157,27 +145,25 @@ function MarketForms({ submit, pending }: SubmitProps) {
   const [budget, setBudget] = useState("20000");
   const [pricingDelta, setPricingDelta] = useState("10");
   return (
-    <div className="space-y-4">
-      <Box title="Campagne marketing">
+    <div className="flex flex-col gap-4">
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Campagne marketing</h3>
         <Row>
-          <NumInput label="Budget ($)" value={budget} onChange={setBudget} />
+          <Field label="Budget ($)"><TextInput value={budget} onChange={setBudget} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() => submit({ kind: "market.campaign", budget: Number(budget) })}
-        />
-      </Box>
-      <Box title="Ajuster le pricing">
+        <Button variant="primary" size="sm" disabled={pending} onClick={() => submit({ kind: "market.campaign", budget: Number(budget) })}>
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Ajuster le pricing</h3>
         <Row>
-          <NumInput label="Delta (%)" value={pricingDelta} onChange={setPricingDelta} />
+          <Field label="Delta (%)"><TextInput value={pricingDelta} onChange={setPricingDelta} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() =>
-            submit({ kind: "market.adjustPricing", deltaPct: Number(pricingDelta) })
-          }
-        />
-      </Box>
+        <Button variant="primary" size="sm" disabled={pending} onClick={() => submit({ kind: "market.adjustPricing", deltaPct: Number(pricingDelta) })}>
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -185,152 +171,46 @@ function MarketForms({ submit, pending }: SubmitProps) {
 function StrategyForms({ submit, pending, state }: SubmitProps & { state: GameState }) {
   const [partner, setPartner] = useState("BigCo");
   const [revShare, setRevShare] = useState("10");
-  const [competitorId, setCompetitorId] = useState(
-    state.worldState.competitors[0]?.id ?? "",
-  );
+  const [competitorId, setCompetitorId] = useState(state.worldState.competitors[0]?.id ?? "");
   const [offer, setOffer] = useState("10000000");
   return (
-    <div className="space-y-4">
-      <Box title="Partenariat">
+    <div className="flex flex-col gap-4">
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Partenariat</h3>
         <Row>
-          <TextInput label="Partenaire" value={partner} onChange={setPartner} />
-          <NumInput label="Rev share (%)" value={revShare} onChange={setRevShare} />
+          <Field label="Partenaire"><TextInput value={partner} onChange={setPartner} /></Field>
+          <Field label="Rev share (%)"><TextInput value={revShare} onChange={setRevShare} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() =>
-            submit({ kind: "strategy.partnership", partnerName: partner, revShare: Number(revShare) })
-          }
-        />
-      </Box>
-      <Box title="Tenter une acquisition">
+        <Button variant="primary" size="sm" disabled={pending} onClick={() => submit({ kind: "strategy.partnership", partnerName: partner, revShare: Number(revShare) })}>
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
+      <div>
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Tenter une acquisition</h3>
         <Row>
-          <TextInput label="Concurrent (id)" value={competitorId} onChange={setCompetitorId} />
-          <NumInput label="Offre ($)" value={offer} onChange={setOffer} />
+          <Field label="Concurrent (id)"><TextInput value={competitorId} onChange={setCompetitorId} /></Field>
+          <Field label="Offre ($)"><TextInput value={offer} onChange={setOffer} /></Field>
         </Row>
-        <SubmitBtn
-          pending={pending}
-          onClick={() =>
-            submit({ kind: "strategy.tryAcquire", competitorId, offerAmount: Number(offer) })
-          }
-        />
-      </Box>
+        <Button variant="primary" size="sm" disabled={pending} onClick={() => submit({ kind: "strategy.tryAcquire", competitorId, offerAmount: Number(offer) })}>
+          {pending ? "…" : "Ajouter"}
+        </Button>
+      </div>
     </div>
   );
 }
 
 function EndgameForms({ submit, pending }: SubmitProps) {
   const confirmEnd = (label: string, action: Action) => {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(`Déclarer "${label}" termine la partie immédiatement. Continuer ?`)
-    ) {
-      return;
-    }
+    if (typeof window !== "undefined" && !window.confirm(`Déclarer "${label}" termine la partie immédiatement. Continuer ?`)) return;
     submit(action);
   };
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-neutral-400">
-        Déclarer une sortie termine la partie immédiatement.
-      </p>
-      <SubmitBtn
-        pending={pending}
-        label="🎉 IPO"
-        onClick={() => confirmEnd("IPO", { kind: "endgame.declareIPO" })}
-      />
-      <SubmitBtn
-        pending={pending}
-        label="🤝 Acquisition (BigCorp / $50M)"
-        onClick={() =>
-          confirmEnd("Acquisition", {
-            kind: "endgame.acceptAcquisition",
-            acquirerName: "BigCorp",
-            price: 50_000_000,
-          })
-        }
-      />
-      <SubmitBtn
-        pending={pending}
-        label="🏡 Lifestyle business"
-        onClick={() => confirmEnd("Lifestyle business", { kind: "endgame.declareLifestyle" })}
-      />
-      <SubmitBtn
-        pending={pending}
-        label="👑 Conglomérat"
-        onClick={() => confirmEnd("Conglomérat", { kind: "endgame.declareConglomerate" })}
-      />
+    <div className="flex flex-col gap-2">
+      <p className="text-xs text-text-muted">Déclarer une sortie termine la partie immédiatement.</p>
+      <Button variant="success" size="md" disabled={pending} onClick={() => confirmEnd("IPO", { kind: "endgame.declareIPO" })}>🎉 IPO</Button>
+      <Button variant="success" size="md" disabled={pending} onClick={() => confirmEnd("Acquisition", { kind: "endgame.acceptAcquisition", acquirerName: "BigCorp", price: 50_000_000 })}>🤝 Acquisition (BigCorp / $50M)</Button>
+      <Button variant="secondary" size="md" disabled={pending} onClick={() => confirmEnd("Lifestyle business", { kind: "endgame.declareLifestyle" })}>🏡 Lifestyle business</Button>
+      <Button variant="secondary" size="md" disabled={pending} onClick={() => confirmEnd("Conglomérat", { kind: "endgame.declareConglomerate" })}>👑 Conglomérat</Button>
     </div>
-  );
-}
-
-// ─── Tiny atoms ─────────────────────────────────────────────────
-
-function Box({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-md border border-neutral-700 p-3">
-      <div className="mb-2 text-sm font-semibold text-neutral-300">{title}</div>
-      {children}
-    </div>
-  );
-}
-
-function Row({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-1 gap-2 md:grid-cols-3 mb-2">{children}</div>;
-}
-
-function TextInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <label className="flex flex-col text-xs text-neutral-400">
-      {label}
-      <input
-        className="mt-1 rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
-  );
-}
-
-function NumInput(props: { label: string; value: string; onChange: (v: string) => void }) {
-  return <TextInput {...props} />;
-}
-
-function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
-  return (
-    <label className="flex flex-col text-xs text-neutral-400">
-      {label}
-      <select
-        className="mt-1 rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {options.map((o) => (
-          <option key={o} value={o}>{o}</option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label className="flex items-center gap-2 text-xs text-neutral-400">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      {label}
-    </label>
-  );
-}
-
-function SubmitBtn({ onClick, pending, label }: { onClick: () => void; pending: boolean; label?: string }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={pending}
-      className="rounded-md bg-neutral-100 px-3 py-1.5 text-sm font-medium text-neutral-900 hover:bg-neutral-200 disabled:opacity-50"
-    >
-      {pending ? "..." : label ?? "Ajouter"}
-    </button>
   );
 }

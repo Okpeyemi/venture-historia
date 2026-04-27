@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Panel } from "@/components/ui/panel";
+import { Button } from "@/components/ui/button";
 import { requestAdviceAction } from "../../actions";
 
 export function AdvisorPanel({ gameId }: { gameId: string }) {
@@ -17,38 +19,30 @@ export function AdvisorPanel({ gameId }: { gameId: string }) {
   };
 
   return (
-    <div className="rounded-lg border border-indigo-700 bg-indigo-950/30 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm uppercase text-indigo-400">🧙 Mentor IA</h2>
-        <div className="flex gap-2">
+    <Panel title="🧙 Mentor IA" variant="advisor">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[11px] leading-[1.5] text-advisor">
+          {advice && expanded && !isPending
+            ? advice
+            : "Conseil personnalisé sur l'état actuel."}
+        </p>
+        <div className="flex flex-shrink-0 gap-1.5">
           {expanded && advice ? (
-            <button
-              type="button"
-              onClick={() => setExpanded(false)}
-              className="rounded-md border border-indigo-700 px-3 py-1.5 text-xs text-indigo-200 hover:bg-indigo-900/40"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setExpanded(false)}>
               Replier
-            </button>
+            </Button>
           ) : null}
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="sm"
             onClick={askAdvisor}
             disabled={isPending}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+            className="!bg-advisor !text-white"
           >
-            {isPending
-              ? "Réflexion..."
-              : advice
-                ? "💡 Demander à nouveau"
-                : "💡 Demander conseil"}
-          </button>
+            {isPending ? "Réflexion…" : advice ? "💡 À nouveau" : "💡 Demander"}
+          </Button>
         </div>
       </div>
-      {expanded && advice && !isPending ? (
-        <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-indigo-100">
-          {advice}
-        </p>
-      ) : null}
-    </div>
+    </Panel>
   );
 }

@@ -1,19 +1,27 @@
+import { Panel } from "@/components/ui/panel";
+
 export function TrimesterNarration({
   narrationOpening,
+  quarterLabel,
 }: {
   narrationOpening: string | null;
+  quarterLabel: string;
 }) {
   if (!narrationOpening) {
     return (
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6 text-neutral-400">
-        Le trimestre n'a pas encore démarré.
-      </div>
+      <Panel title="Ouverture du trimestre" badge={quarterLabel} variant="narration">
+        <p className="text-text-muted">Le trimestre n'a pas encore démarré.</p>
+      </Panel>
     );
   }
   return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-      <h2 className="mb-2 text-sm uppercase text-neutral-500">Ouverture du trimestre</h2>
-      <p className="whitespace-pre-line leading-relaxed">{narrationOpening}</p>
-    </div>
+    <Panel title="Ouverture du trimestre" badge={quarterLabel} variant="narration">
+      <p
+        data-tutorial-target="narration"
+        className="font-serif whitespace-pre-line text-[13.5px] leading-[1.6] text-text-default"
+      >
+        {narrationOpening}
+      </p>
+    </Panel>
   );
 }

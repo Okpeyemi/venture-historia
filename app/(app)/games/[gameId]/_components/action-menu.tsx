@@ -1,43 +1,45 @@
 "use client";
 
 import { useState } from "react";
+import { Tabs, TabPanel, tabIds } from "@/components/ui/tabs";
+import { Panel } from "@/components/ui/panel";
 import { ActionForms } from "./action-forms";
 import type { GameState } from "@/lib/game/types";
 
-const CATEGORIES = ["finance", "team", "product", "market", "strategy", "nl", "endgame"] as const;
-type Category = (typeof CATEGORIES)[number];
+const OPTIONS = [
+  { id: "finance",  label: "💰 Finance" },
+  { id: "team",     label: "👥 Équipe" },
+  { id: "product",  label: "🚀 Produit" },
+  { id: "market",   label: "📈 Marché" },
+  { id: "strategy", label: "🤝 Stratégie" },
+  { id: "nl",       label: "📝 Libre" },
+  { id: "endgame",  label: "🏁 Sortie" },
+] as const;
 
-const LABELS: Record<Category, string> = {
-  finance: "💰 Finance",
-  team: "👥 Équipe",
-  product: "🚀 Produit",
-  market: "📈 Marché",
-  strategy: "🤝 Stratégie",
-  nl: "📝 Action libre",
-  endgame: "🏁 Sortie",
-};
+type Category = (typeof OPTIONS)[number]["id"];
+
+const PREFIX = "action-menu";
 
 export function ActionMenu({ gameId, state }: { gameId: string; state: GameState }) {
   const [active, setActive] = useState<Category>("finance");
+  const activeLabel = OPTIONS.find((o) => o.id === active)!.label;
+  const { tabId, panelId } = tabIds(PREFIX, active);
+
   return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-4">
-      <div className="mb-3 flex flex-wrap gap-2">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => setActive(c)}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              active === c
-                ? "bg-neutral-100 text-neutral-900"
-                : "border border-neutral-700 text-neutral-300 hover:bg-neutral-800"
-            }`}
-          >
-            {LABELS[c]}
-          </button>
-        ))}
+    <div className="flex flex-col gap-2.5">
+      <div data-tutorial-target="tabs">
+        <Tabs<Category>
+          value={active}
+          onChange={setActive}
+          options={OPTIONS.map((o) => ({ id: o.id, label: o.label }))}
+          idPrefix={PREFIX}
+        />
       </div>
-      <ActionForms gameId={gameId} state={state} category={active} />
+      <TabPanel id={panelId} tabId={tabId}>
+        <Panel title={activeLabel} variant="default">
+          <ActionForms gameId={gameId} state={state} category={active} />
+        </Panel>
+      </TabPanel>
     </div>
   );
 }
