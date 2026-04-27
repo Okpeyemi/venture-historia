@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { pickHint } from "@/lib/game/ui/contextual-hints";
-import type { GameState } from "@/lib/game/types";
+import type { GameState, Product } from "@/lib/game/types";
 
 function baseState(overrides: Partial<GameState["playerState"]> = {}): GameState {
   return {
@@ -15,17 +15,46 @@ function baseState(overrides: Partial<GameState["playerState"]> = {}): GameState
       reputation: 50,
       products: [],
       investors: [],
+      boardSeatsTaken: 0,
       ...overrides,
     },
     scenario: {
+      presetId: "test",
+      era: 2005,
+      region: "us",
+      sector: "saas",
+      startingYear: 2005,
       currentQuarter: "Q1",
       currentYear: 2005,
-      totalTrimesters: 12,
     },
-    worldState: { marketConditions: "neutral", competitors: [] },
-    history: { trimestersPlayed: 0, activeConsequences: [] },
-  } as unknown as GameState;
+    worldState: {
+      marketConditions: "neutral",
+      macroEventsActive: [],
+      competitors: [],
+      firedMilestones: [],
+    },
+    history: {
+      trimestersPlayed: 0,
+      narrativeSummary: "",
+      keyDecisions: [],
+      activeConsequences: [],
+    },
+  };
 }
+
+const productInRD: Product = {
+  name: "p1",
+  stage: "rd",
+  satisfaction: 0,
+  quartersInRD: 2,
+};
+
+const productShipped: Product = {
+  name: "p1",
+  stage: "shipped",
+  satisfaction: 70,
+  quartersInRD: 0,
+};
 
 describe("pickHint", () => {
   it("rule 1: runwayMonths <= 3 → runway-critical", () => {
@@ -59,24 +88,24 @@ describe("pickHint", () => {
     expect(pickHint(s).id).toBe("first-trimester");
   });
 
-  it("rule 6: no launched product after trimester 4 → no-product-yet", () => {
+  it("rule 6: no shipped product after trimester 4 → no-product-yet", () => {
     const s = baseState({ runwayMonths: 12, founderBurnout: 30, boardTension: 20 });
     s.history.trimestersPlayed = 5;
-    s.playerState.products = [{ name: "p1", launched: false, quartersUntilLaunch: 2 } as never];
+    s.playerState.products = [productInRD];
     expect(pickHint(s).id).toBe("no-product-yet");
   });
 
-  it("rule 6 ignores when at least one product is launched", () => {
+  it("rule 6 ignores when at least one product is shipped", () => {
     const s = baseState({ runwayMonths: 12, founderBurnout: 30, boardTension: 20 });
     s.history.trimestersPlayed = 5;
-    s.playerState.products = [{ name: "p1", launched: true, quartersUntilLaunch: 0 } as never];
+    s.playerState.products = [productShipped];
     expect(pickHint(s).id).toBe("stable");
   });
 
   it("fallback: stable", () => {
     const s = baseState({ runwayMonths: 12, founderBurnout: 30, boardTension: 20 });
     s.history.trimestersPlayed = 6;
-    s.playerState.products = [{ name: "p1", launched: true, quartersUntilLaunch: 0 } as never];
+    s.playerState.products = [productShipped];
     const r = pickHint(s);
     expect(r.id).toBe("stable");
     expect(r.message).toMatch(/État stable/);

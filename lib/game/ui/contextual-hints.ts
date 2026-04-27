@@ -21,7 +21,7 @@ export function pickHint(state: GameState): ContextualHint {
   if (ps.boardTension > 70) return { id: "board-hostile", message: HINTS["board-hostile"]! };
   if (ps.runwayMonths < 6) return { id: "runway-short", message: HINTS["runway-short"]! };
   if (hist.trimestersPlayed === 0) return { id: "first-trimester", message: HINTS["first-trimester"]! };
-  const anyLaunched = ps.products.some((p) => (p as { launched?: boolean }).launched);
+  const anyLaunched = ps.products.some((p) => p.stage === "shipped");
   if (!anyLaunched && hist.trimestersPlayed >= 4) {
     return { id: "no-product-yet", message: HINTS["no-product-yet"]! };
   }
