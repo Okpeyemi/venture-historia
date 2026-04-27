@@ -16,7 +16,7 @@ test.describe("NL escape + Advisor", () => {
     await expect(page).toHaveURL(/\/games\/[^/]+$/);
 
     // Open the new "Action libre" tab.
-    await page.getByRole("tab", { name: /Action libre/ }).click();
+    await page.getByRole("tab", { name: /Libre/ }).click();
 
     // Type a free-form action and submit.
     await page
@@ -37,7 +37,7 @@ test.describe("NL escape + Advisor", () => {
     await expect(page).toHaveURL(/\/games\/[^/]+$/);
 
     // Click the advisor button.
-    await page.getByRole("button", { name: /Demander conseil/ }).click();
+    await page.getByRole("button", { name: /Demander/ }).click();
 
     // MockAdvisor returns "[mock advice] State looks healthy. Keep building."
     // when runway >= 6, else "[mock advice] Runway is short..."
